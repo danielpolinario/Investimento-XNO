@@ -1,27 +1,28 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Painel de Controle Nano (XNO)</title>
-    
+
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="Painel Nano">
-    <link rel="apple-touch-icon" href="favicon.png"> <meta name="theme-color" content="#4f98ff"/>
+    <link rel="apple-touch-icon" href="favicon.png">
+    <meta name="theme-color" content="#4f98ff"/>
 
     <style>
         :root {
             --bg-color: #1a1a2e;
             --card-color: #16213e;
             --font-color: #e0e0e0;
-            --primary-color: #4f98ff; /* Nano blue */
+            --primary-color: #4f98ff;
             --green-color: #03c04a;
             --red-color: #ff4757;
             --border-color: #0f3460;
-            --profit-color: #03c04a; /* Green for profit */
-            --loss-color: #ff4757; /* Red for loss */
+            --profit-color: #03c04a;
+            --loss-color: #ff4757;
         }
 
         body {
@@ -52,7 +53,7 @@
             margin: 0;
             color: var(--primary-color);
         }
-        
+
         header p {
             margin-top: 5px;
             font-size: 0.9em;
@@ -74,7 +75,6 @@
             padding-bottom: 10px;
         }
 
-        /* --- ATUALIZADO PARA UM GRID 3X2 --- */
         .dashboard-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -89,7 +89,7 @@
         .metric .label {
             font-size: 0.9em;
             opacity: 0.8;
-            min-height: 30px; /* Garante alinhamento */
+            min-height: 30px;
         }
 
         .metric .value {
@@ -160,6 +160,7 @@
             background-color: var(--red-color);
             margin-top: 15px;
         }
+
         .danger-button:hover {
             background-color: #c93a47;
         }
@@ -169,7 +170,7 @@
             border-collapse: collapse;
             margin-top: 15px;
         }
-        
+
         #transaction-table th, #transaction-table td {
             padding: 8px;
             text-align: left;
@@ -179,10 +180,6 @@
         #transaction-table th {
             font-size: 0.9em;
             color: var(--primary-color);
-        }
-        
-        #transaction-table td {
-            font-size: 0.95em;
         }
 
         .projection-table td {
@@ -206,10 +203,37 @@
             padding-top: 10px;
             border-top: 1px solid var(--border-color);
         }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+
+            .form-group input,
+            button,
+            #meta-value {
+                width: 100% !important;
+            }
+
+            .metric .value {
+                font-size: 1.4em;
+            }
+
+            .metric .label {
+                font-size: 0.85em;
+            }
+
+            .card {
+                padding: 15px;
+            }
+
+            #live-price {
+                font-size: 0.95em;
+            }
+        }
     </style>
 </head>
 <body>
-
     <div class="container">
         <header>
             <h1>Painel de Controle de Investimentos em Nano (XNO)</h1>
@@ -219,40 +243,24 @@
 
         <div class="card" style="grid-column: 1 / -1;">
             <h2>Dashboard Principal</h2>
+
             <div class="dashboard-grid">
-                <div class="metric">
-                    <div class="label">Total de XNO Acumulado</div>
-                    <div class="value" id="total-xno">0.00</div>
-                </div>
-                <div class="metric">
-                    <div class="label">Patrimônio Atual (R$)</div>
-                    <div class="value" id="patrimonio-atual">R$ 0,00</div>
-                </div>
-                <div class="metric">
-                    <div class="label">Preço Médio de Compra (R$)</div>
-                    <div class="value" id="preco-medio">R$ 0,00</div>
-                </div>
-                   <div class="metric">
-                    <div class="label">Falta para a Meta (R$)</div>
-                    <div class="value" id="falta-para-meta">R$ 150.000,00</div>
-                </div>
-                <div class="metric">
-                    <div class="label">XNO Necessários para Meta</div>
-                    <div class="value" id="xno-para-meta">...</div>
-                </div>
-                <div class="metric">
-                    <div class="label">Total Investido (R$)</div>
-                    <div class="value" id="total-investido">R$ 0,00</div>
-                </div>
-                <div class="metric">
-                    <div class="label">Lucro/Prejuízo Total</div>
-                    <div class="value" id="profit-loss">-</div>
-                </div>
+                <div class="metric"><div class="label">Total de XNO Acumulado</div><div class="value" id="total-xno">0.00</div></div>
+                <div class="metric"><div class="label">Patrimônio Atual (R$)</div><div class="value" id="patrimonio-atual">R$ 0,00</div></div>
+                <div class="metric"><div class="label">Preço Médio de Compra (R$)</div><div class="value" id="preco-medio">R$ 0,00</div></div>
+                <div class="metric"><div class="label">Falta para a Meta (R$)</div><div class="value" id="falta-para-meta">R$ 150.000,00</div></div>
+                <div class="metric"><div class="label">XNO Necessários para Meta</div><div class="value" id="xno-para-meta">...</div></div>
+                <div class="metric"><div class="label">Total Investido (R$)</div><div class="value" id="total-investido">R$ 0,00</div></div>
+                <div class="metric"><div class="label">Lucro/Prejuízo Total</div><div class="value" id="profit-loss">-</div></div>
             </div>
+
+            <div style="text-align:center; margin-top: 20px;">
+                <label for="meta-value" style="font-size: 0.9em;">Editar Meta (R$)</label><br>
+                <input type="number" id="meta-value" style="width: 160px; margin-top: 5px; padding: 5px; border-radius: 5px; background-color: var(--bg-color); border: 1px solid var(--border-color); color: var(--font-color); text-align: center;">
+            </div>
+
             <h3 id="progress-title" style="text-align:center; margin-top: 25px; margin-bottom:10px;">Progresso até a Meta (R$ 150.000)</h3>
-            <div class="progress-bar-container">
-                <div id="progress-bar">0%</div>
-            </div>
+            <div class="progress-bar-container"><div id="progress-bar">0%</div></div>
         </div>
 
         <div class="card">
@@ -264,11 +272,11 @@
                 </div>
                 <div class="form-group">
                     <label for="xno-amount">Quantidade de XNO</label>
-                    <input type="number" id="xno-amount" step="any" placeholder="Ex: 10.5" required>
+                    <input type="number" id="xno-amount" step="any" required>
                 </div>
                 <div class="form-group">
                     <label for="brl-value">Valor Total Pago (R$)</label>
-                    <input type="number" id="brl-value" step="any" placeholder="Ex: 55.00" required>
+                    <input type="number" id="brl-value" step="any" required>
                 </div>
                 <button type="submit">Adicionar Compra</button>
             </form>
@@ -277,16 +285,7 @@
         <div class="card">
             <h2>Histórico de Compras</h2>
             <div style="max-height: 250px; overflow-y: auto;">
-                <table id="transaction-table">
-                    <thead>
-                        <tr>
-                            <th>Data</th>
-                            <th>Qtd. XNO</th>
-                            <th>Valor (R$)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="transaction-list"></tbody>
-                </table>
+                <table id="transaction-table"><thead><tr><th>Data</th><th>Qtd. XNO</th><th>Valor (R$)</th></tr></thead><tbody id="transaction-list"></tbody></table>
             </div>
             <button id="reset-button" class="danger-button">Apagar Histórico</button>
         </div>
@@ -294,13 +293,7 @@
         <div class="card">
             <h2>Projeções de Patrimônio</h2>
             <table class="projection-table" style="width:100%;">
-                <thead>
-                    <tr>
-                        <th>Cenário</th>
-                        <th>Cotação (USD)</th>
-                        <th>Patrimônio (BRL)</th>
-                    </tr>
-                </thead>
+                <thead><tr><th>Cenário</th><th>Cotação (USD)</th><th>Patrimônio (BRL)</th></tr></thead>
                 <tbody id="projection-list"></tbody>
             </table>
         </div>
@@ -322,10 +315,8 @@
         </footer>
     </div>
 
-
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // --- ELEMENTOS DO DOM ---
             const totalXnoEl = document.getElementById('total-xno');
             const patrimonioAtualEl = document.getElementById('patrimonio-atual');
             const precoMedioEl = document.getElementById('preco-medio');
@@ -341,36 +332,30 @@
             const simPriceInput = document.getElementById('sim-price');
             const resetButton = document.getElementById('reset-button');
             const faltaParaMetaEl = document.getElementById('falta-para-meta');
-            const xnoParaMetaEl = document.getElementById('xno-para-meta'); // NOVO ELEMENTO: XNO Necessários para Meta
-            const profitLossEl = document.getElementById('profit-loss'); // Elemento para Lucro/Prejuízo
+            const xnoParaMetaEl = document.getElementById('xno-para-meta');
+            const profitLossEl = document.getElementById('profit-loss');
+            const metaInput = document.getElementById('meta-value');
 
-            // --- ESTADO DA APLICAÇÃO ---
             let transactions = JSON.parse(localStorage.getItem('xno_transactions')) || [];
             let xnoPrice = { usd: 0, brl: 0 };
-            const metaBRL = 150000;
-            const aporteMensalXNO = 10;
+            let metaBRL = parseFloat(localStorage.getItem('xno_meta')) || 150000;
+
             const projectionScenarios = [
                 { name: 'Conservador', price: 5 }, { name: 'Otimista', price: 10 },
                 { name: 'Retorno ao Topo', price: 20 }, { name: 'Topo Histórico', price: 33 },
                 { name: 'Muito Otimista', price: 50 },
             ];
-            
-            progressTitleEl.textContent = `Progresso até a Meta (${formatCurrencyBRL(metaBRL)})`;
-
-            // --- FUNÇÕES ---
 
             async function fetchPrices() {
                 try {
                     const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=nano&vs_currencies=usd,brl');
-                    if (!response.ok) throw new Error('Erro de rede ao buscar cotação.');
                     const data = await response.json();
                     xnoPrice.usd = data.nano.usd;
                     xnoPrice.brl = data.nano.brl;
                     livePriceEl.textContent = `Cotação Atual: 1 XNO = $${xnoPrice.usd.toFixed(4)} USD / R$${xnoPrice.brl.toFixed(2)} BRL`;
                     updateUI();
-                } catch (error) {
-                    livePriceEl.textContent = 'Erro ao buscar cotação. Tentando novamente em breve...';
-                    console.error("API Error:", error);
+                } catch {
+                    livePriceEl.textContent = 'Erro ao buscar cotação.';
                 }
             }
 
@@ -379,7 +364,7 @@
                 const totalInvested = transactions.reduce((sum, t) => sum + t.brl, 0);
                 const patrimonioAtual = totalXNO * xnoPrice.brl;
                 const precoMedio = totalXNO > 0 ? totalInvested / totalXNO : 0;
-                
+
                 totalXnoEl.textContent = totalXNO.toFixed(4);
                 totalInvestidoEl.textContent = formatCurrencyBRL(totalInvested);
                 patrimonioAtualEl.textContent = formatCurrencyBRL(patrimonioAtual);
@@ -389,141 +374,107 @@
                 progressBarEl.style.width = `${Math.min(progress, 100)}%`;
                 progressBarEl.textContent = `${progress.toFixed(2)}%`;
 
-                // --- LÓGICA PARA AS NOVAS MÉTRICAS ---
                 const faltaParaMeta = Math.max(0, metaBRL - patrimonioAtual);
                 faltaParaMetaEl.textContent = formatCurrencyBRL(faltaParaMeta);
 
-                // Calcular XNO necessários
                 if (faltaParaMeta <= 0) {
                     xnoParaMetaEl.textContent = "🎉 Meta Atingida!";
-                    xnoParaMetaEl.style.color = '#ffd700'; // Cor de ouro
-                } else if (xnoPrice.brl > 0) {
+                    xnoParaMetaEl.style.color = '#ffd700';
+                } else {
                     const xnoNecessarios = faltaParaMeta / xnoPrice.brl;
                     xnoParaMetaEl.textContent = `${xnoNecessarios.toFixed(2)} XNO`;
-                    xnoParaMetaEl.style.color = 'var(--primary-color)'; // Cor padrão ou outra
-                } else {
-                    xnoParaMetaEl.textContent = "Cotação indisponível";
-                    xnoParaMetaEl.style.color = 'var(--font-color)';
+                    xnoParaMetaEl.style.color = 'var(--primary-color)';
                 }
 
-                // --- CÁLCULO E EXIBIÇÃO DE LUCRO/PREJUÍZO ---
                 const profitLoss = patrimonioAtual - totalInvested;
-                let profitLossPercentage = 0;
-                if (totalInvested > 0) {
-                    profitLossPercentage = (profitLoss / totalInvested) * 100;
-                }
+                const profitPercent = totalInvested > 0 ? (profitLoss / totalInvested) * 100 : 0;
 
-                profitLossEl.textContent = `${formatCurrencyBRL(profitLoss)} (${profitLossPercentage.toFixed(2)}%)`;
-                if (profitLoss >= 0) {
-                    profitLossEl.classList.remove('loss');
-                    profitLossEl.classList.add('profit');
-                } else {
-                    profitLossEl.classList.remove('profit');
-                    profitLossEl.classList.add('loss');
-                }
-                // FIM CÁLCULO E EXIBIÇÃO DE LUCRO/PREJUÍZO
+                profitLossEl.textContent = `${formatCurrencyBRL(profitLoss)} (${profitPercent.toFixed(2)}%)`;
+                profitLossEl.classList.toggle('profit', profitLoss >= 0);
+                profitLossEl.classList.toggle('loss', profitLoss < 0);
 
+                updateMetaDisplay();
                 renderTransactionList();
                 updateProjections(totalXNO);
                 updatePassiveIncomeSimulator();
+            }
+
+            function updateMetaDisplay() {
+                progressTitleEl.textContent = `Progresso até a Meta (${formatCurrencyBRL(metaBRL)})`;
+                metaInput.value = metaBRL;
             }
 
             function renderTransactionList() {
                 transactionListEl.innerHTML = '';
                 transactions.slice().reverse().forEach(t => {
                     const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${new Date(t.date).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}</td>
-                        <td>${t.xno.toFixed(4)}</td>
-                        <td>${formatCurrencyBRL(t.brl)}</td>
-                    `;
+                    row.innerHTML = `<td>${new Date(t.date).toLocaleDateString('pt-BR')}</td><td>${t.xno.toFixed(4)}</td><td>${formatCurrencyBRL(t.brl)}</td>`;
                     transactionListEl.appendChild(row);
                 });
             }
-            
+
             function updateProjections(totalXNO) {
                 projectionListEl.innerHTML = '';
-                const usdToBrlRate = xnoPrice.usd > 0 ? xnoPrice.brl / xnoPrice.usd : 0;
+                const usdToBrl = xnoPrice.brl / xnoPrice.usd;
                 projectionScenarios.forEach(s => {
-                    const projectedValue = totalXNO * s.price * usdToBrlRate;
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${s.name}</td>
-                        <td>${formatCurrencyUSD(s.price)}</td>
-                        <td>${formatCurrencyBRL(projectedValue)}</td>
-                    `;
-                    projectionListEl.appendChild(row);
+                    const value = totalXNO * s.price * usdToBrl;
+                    projectionListEl.innerHTML += `<tr><td>${s.name}</td><td>${formatCurrencyUSD(s.price)}</td><td>${formatCurrencyBRL(value)}</td></tr>`;
                 });
             }
 
             function updatePassiveIncomeSimulator() {
-                const usdToBrlRate = xnoPrice.usd > 0 ? xnoPrice.brl / xnoPrice.usd : 0;
+                const usdToBrl = xnoPrice.brl / xnoPrice.usd;
                 const sellAmount = parseFloat(sellAmountInput.value) || 0;
                 const simPrice = parseFloat(simPriceInput.value) || 0;
-                const monthlyIncome = sellAmount * simPrice * usdToBrlRate;
-                passiveIncomeResultEl.textContent = `Isso geraria ${formatCurrencyBRL(monthlyIncome)} por mês.`;
-            }
+                const monthly = sellAmount * simPrice * usdToBrl;
+                const yearly = monthly * 12;
 
-            function addTransaction(e) {
-                e.preventDefault();
-                const date = document.getElementById('date').value;
-                const xnoAmount = parseFloat(document.getElementById('xno-amount').value);
-                const brlValue = parseFloat(document.getElementById('brl-value').value);
-
-                if (date && xnoAmount > 0 && brlValue > 0) {
-                    transactions.push({ date, xno: xnoAmount, brl: brlValue });
-                    saveTransactions();
-                    updateUI();
-                    transactionForm.reset();
-                } else {
-                    alert('Por favor, preencha todos os campos corretamente.');
-                }
-            }
-
-            function saveTransactions() {
-                localStorage.setItem('xno_transactions', JSON.stringify(transactions));
-            }
-
-            function resetAllData() {
-                const isConfirmed = confirm('Você tem certeza que deseja apagar TODO o histórico de lançamentos? Esta ação não pode ser desfeita.');
-                if (isConfirmed) {
-                    localStorage.removeItem('xno_transactions');
-                    transactions = [];
-                    updateUI();
-                    alert('Histórico apagado com sucesso!');
-                }
+                passiveIncomeResultEl.textContent = `R$ ${monthly.toFixed(2)} / mês = R$ ${yearly.toFixed(2)} / ano`;
             }
 
             function formatCurrencyBRL(value) {
                 return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
             }
+
             function formatCurrencyUSD(value) {
-                return value.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+                return `$${value.toFixed(2)}`;
             }
 
-            // --- INICIALIZAÇÃO E EVENT LISTENERS ---
-            transactionForm.addEventListener('submit', addTransaction);
+            transactionForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const date = document.getElementById('date').value;
+                const xno = parseFloat(document.getElementById('xno-amount').value);
+                const brl = parseFloat(document.getElementById('brl-value').value);
+                if (!date || isNaN(xno) || isNaN(brl)) return;
+                transactions.push({ date, xno, brl });
+                localStorage.setItem('xno_transactions', JSON.stringify(transactions));
+                updateUI();
+                transactionForm.reset();
+            });
+
+            resetButton.addEventListener('click', () => {
+                if (confirm('Tem certeza que deseja apagar todo o histórico?')) {
+                    transactions = [];
+                    localStorage.removeItem('xno_transactions');
+                    updateUI();
+                }
+            });
+
             sellAmountInput.addEventListener('input', updatePassiveIncomeSimulator);
             simPriceInput.addEventListener('input', updatePassiveIncomeSimulator);
-            resetButton.addEventListener('click', resetAllData);
+
+            metaInput.addEventListener('change', () => {
+                const newMeta = parseFloat(metaInput.value);
+                if (!isNaN(newMeta) && newMeta > 0) {
+                    metaBRL = newMeta;
+                    localStorage.setItem('xno_meta', metaBRL);
+                    updateUI();
+                }
+            });
 
             fetchPrices();
-            setInterval(fetchPrices, 3600 * 1000);
-
-            // Adicionado: Registro do Service Worker para PWA
-            if ('serviceWorker' in navigator) {
-                window.addEventListener('load', () => {
-                    navigator.serviceWorker.register('/service-worker.js')
-                        .then(registration => {
-                            console.log('ServiceWorker registrado com sucesso:', registration.scope);
-                        })
-                        .catch(error => {
-                            console.error('Falha no registro do ServiceWorker:', error);
-                        });
-                });
-            }
+            setInterval(fetchPrices, 60 * 60 * 1000); // Atualiza a cada hora
         });
     </script>
-
 </body>
 </html>
