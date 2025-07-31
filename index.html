@@ -1,576 +1,226 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Painel de Controle Nano (XNO)</title>
-
-    <link rel="manifest" href="manifest.json">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <meta name="apple-mobile-web-app-title" content="Painel Nano">
-    <link rel="apple-touch-icon" href="favicon.png">
-    <meta name="theme-color" content="#4f98ff"/>
-
-    <style>
-        :root {
-            --bg-color: #1a1a2e;
-            --card-color: #16213e;
-            --font-color: #e0e0e0;
-            --primary-color: #4f98ff;
-            --green-color: #03c04a;
-            --red-color: #ff4757;
-            --border-color: #0f3460;
-            --profit-color: #03c04a;
-            --loss-color: #ff4757;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--font-color);
-            margin: 0;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: auto;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 20px;
-        }
-
-        header {
-            grid-column: 1 / -1;
-            text-align: center;
-            border-bottom: 2px solid var(--border-color);
-            padding-bottom: 15px;
-            margin-bottom: 10px;
-        }
-
-        header h1 {
-            margin: 0;
-            color: var(--primary-color);
-        }
-
-        header p {
-            margin-top: 5px;
-            font-size: 0.9em;
-            opacity: 0.7;
-        }
-
-        .card {
-            background-color: var(--card-color);
-            padding: 20px;
-            border-radius: 10px;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        .card h2 {
-            margin-top: 0;
-            color: var(--primary-color);
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 10px;
-        }
-
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin-top: 15px;
-        }
-
-        .metric {
-            text-align: center;
-        }
-
-        .metric .label {
-            font-size: 0.9em;
-            opacity: 0.8;
-            min-height: 30px;
-        }
-
-        .metric .value {
-            font-size: 1.6em;
-            font-weight: bold;
-            margin-top: 5px;
-        }
-
-        #patrimonio-atual {
-            color: var(--green-color);
-        }
-
-        .progress-bar-container {
-            width: 100%;
-            background-color: var(--bg-color);
-            border-radius: 5px;
-            margin-top: 15px;
-        }
-
-        #progress-bar {
-            width: 0%;
-            height: 20px;
-            background-color: var(--green-color);
-            border-radius: 5px;
-            text-align: center;
-            line-height: 20px;
-            color: white;
-            font-weight: bold;
-            transition: width 0.5s ease-in-out;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        .form-group input {
-            width: 95%;
-            padding: 10px;
-            background-color: var(--bg-color);
-            border: 1px solid var(--border-color);
-            border-radius: 5px;
-            color: var(--font-color);
-        }
-
-        button {
-            width: 100%;
-            padding: 12px;
-            background-color: var(--primary-color);
-            border: none;
-            border-radius: 5px;
-            color: white;
-            font-size: 1.1em;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        button:hover {
-            background-color: #3a7dcf;
-        }
-
-        .danger-button {
-            background-color: var(--red-color);
-            margin-top: 15px;
-        }
-
-        .danger-button:hover {
-            background-color: #c93a47;
-        }
-
-        #transaction-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-        }
-
-        #transaction-table th, #transaction-table td {
-            padding: 8px;
-            text-align: left;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        #transaction-table th {
-            font-size: 0.9em;
-            color: var(--primary-color);
-        }
-
-        .projection-table td {
-            padding: 6px;
-        }
-
-        .profit {
-            color: var(--profit-color);
-        }
-
-        .loss {
-            color: var(--loss-color);
-        }
-
-        footer {
-            grid-column: 1 / -1;
-            text-align: center;
-            font-size: 0.8em;
-            opacity: 0.6;
-            margin-top: 20px;
-            padding-top: 10px;
-            border-top: 1px solid var(--border-color);
-        }
-
-        @media (max-width: 768px) {
-            .dashboard-grid {
-                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            }
-
-            .form-group input,
-            button,
-            #meta-value {
-                width: 100% !important;
-            }
-
-            .metric .value {
-                font-size: 1.4em;
-            }
-
-            .metric .label {
-                font-size: 0.85em;
-            }
-
-            .card {
-                padding: 15px;
-            }
-
-            #live-price {
-                font-size: 0.95em;
-            }
-        }
-    </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Painel de Controle Nano (XNO)</title>
+<style>
+    /* Seu CSS atual simplificado */
+    :root {
+        --bg-color: #1a1a2e;
+        --card-color: #16213e;
+        --font-color: #e0e0e0;
+        --primary-color: #4f98ff;
+        --green-color: #03c04a;
+        --red-color: #ff4757;
+        --border-color: #0f3460;
+    }
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: var(--bg-color);
+        color: var(--font-color);
+        margin: 0;
+        padding: 20px;
+    }
+    .container {
+        max-width: 1200px;
+        margin: auto;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 20px;
+    }
+    header {
+        grid-column: 1 / -1;
+        text-align: center;
+        border-bottom: 2px solid var(--border-color);
+        padding-bottom: 15px;
+        margin-bottom: 10px;
+    }
+    header h1 {
+        margin: 0;
+        color: var(--primary-color);
+    }
+    header p {
+        margin-top: 5px;
+        font-size: 0.9em;
+        opacity: 0.7;
+    }
+    .card {
+        background-color: var(--card-color);
+        padding: 20px;
+        border-radius: 10px;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    .card h2 {
+        margin-top: 0;
+        color: var(--primary-color);
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 10px;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+    }
+    th, td {
+        padding: 8px;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+    }
+    th {
+        font-size: 0.9em;
+        color: var(--primary-color);
+    }
+    button {
+        width: 100%;
+        padding: 12px;
+        background-color: var(--primary-color);
+        border: none;
+        border-radius: 5px;
+        color: white;
+        font-size: 1.1em;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    button:hover {
+        background-color: #3a7dcf;
+    }
+</style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Painel de Controle de Investimentos em Nano (XNO)</h1>
-            <p>Seu caminho para a meta de R$150.000, atualizado em tempo real.</p>
-            <div id="live-price" style="font-size:1.1em; margin-top:10px;">Buscando cotações...</div>
-        </header>
+<div class="container">
+    <header>
+        <h1>Painel de Controle de Investimentos em Nano (XNO)</h1>
+        <p>Seu caminho para a meta de R$150.000, atualizado em tempo real.</p>
+    </header>
 
-        <div class="card" style="grid-column: 1 / -1;">
-            <h2>Dashboard Principal</h2>
-
-            <div class="dashboard-grid">
-                <div class="metric"><div class="label">Total de XNO Acumulado</div><div class="value" id="total-xno">0.00</div></div>
-                <div class="metric"><div class="label">Patrimônio Atual (R$)</div><div class="value" id="patrimonio-atual">R$ 0,00</div></div>
-                <div class="metric"><div class="label">Preço Médio de Compra (R$)</div><div class="value" id="preco-medio">R$ 0,00</div></div>
-                <div class="metric"><div class="label">Falta para a Meta (R$)</div><div class="value" id="falta-para-meta">R$ 150.000,00</div></div>
-                <div class="metric"><div class="label">XNO Necessários para Meta</div><div class="value" id="xno-para-meta">...</div></div>
-                <div class="metric"><div class="label">Total Investido (R$)</div><div class="value" id="total-investido">R$ 0,00</div></div>
-                <div class="metric"><div class="label">Lucro/Prejuízo Total</div><div class="value" id="profit-loss">-</div></div>
-            </div>
-
-            <div style="text-align:center; margin-top: 20px;">
-                <label for="meta-value" style="font-size: 0.9em;">Editar Meta (R$)</label><br>
-                <input type="number" id="meta-value" style="width: 160px; margin-top: 5px; padding: 5px; border-radius: 5px; background-color: var(--bg-color); border: 1px solid var(--border-color); color: var(--font-color); text-align: center;" min="0" step="1000" value="150000">
-            </div>
-
-            <h3 style="margin-top: 25px;">Progresso até a Meta</h3>
-            <div class="progress-bar-container">
-                <div id="progress-bar">0%</div>
-            </div>
-        </div>
-
-        <div class="card">
-            <h2>Registrar Compra</h2>
-            <form id="form-add-compra">
-                <div class="form-group">
-                    <label for="compra-quantidade">Quantidade de XNO comprada</label>
-                    <input type="number" id="compra-quantidade" min="0.0001" step="0.0001" required />
-                </div>
-                <div class="form-group">
-                    <label for="compra-preco">Preço por XNO (R$)</label>
-                    <input type="number" id="compra-preco" min="0.00001" step="0.00001" required />
-                </div>
-                <button type="submit">Adicionar Compra</button>
-            </form>
-        </div>
-
-        <div class="card">
-            <h2>Histórico de Compras</h2>
-            <table id="transaction-table">
-                <thead>
-                    <tr>
-                        <th>Quantidade (XNO)</th>
-                        <th>Preço Unitário (R$)</th>
-                        <th>Valor Total (R$)</th>
-                        <th>Data</th>
-                        <th>Ação</th>
-                    </tr>
-                </thead>
-                <tbody id="transaction-tbody">
-                    <!-- Linhas preenchidas via JS -->
-                </tbody>
-            </table>
-        </div>
-
-        <div class="card" style="grid-column: 1 / -1;">
-            <h2>Simulador de Renda Passiva</h2>
-            <form id="form-simulador">
-                <div class="form-group">
-                    <label for="sim-xno">Quantidade de XNO para Simular</label>
-                    <input type="number" id="sim-xno" min="0" step="0.0001" required />
-                </div>
-                <div class="form-group">
-                    <label for="sim-rendimento">Rendimento Mensal (%)</label>
-                    <input type="number" id="sim-rendimento" min="0" step="0.01" value="1.3" required />
-                </div>
-                <button type="submit">Calcular Renda Passiva Mensal</button>
-            </form>
-            <div id="resultado-renda" style="margin-top: 15px; font-weight: bold;"></div>
-        </div>
-
-        <footer>
-            Desenvolvido por Daniel Maurilio Polinario — Atualizado em <span id="data-atualizacao"></span>
-        </footer>
+    <!-- Dashboard Principal -->
+    <div class="card" style="grid-column: 1 / -1;">
+        <h2>Dashboard Principal</h2>
+        <p>Total de XNO Acumulado: <span id="total-xno">0.0000</span></p>
+        <p>Patrimônio Atual (R$): <span id="patrimonio-atual">R$ 0,00</span></p>
+        <p>Preço Médio de Compra (R$): <span id="preco-medio">R$ 0,00</span></p>
+        <p>Total Investido em Compras (R$): <span id="total-compras">R$ 0,00</span></p>
+        <p>Total Vendido (XNO): <span id="total-vendido">0.0000</span></p>
+        <p>Total Recebido em Vendas (R$): <span id="total-vendas">R$ 0,00</span></p>
+        <p>Lucro/Prejuízo Total (R$): <span id="lucro-prejuizo">R$ 0,00</span></p>
     </div>
 
-    <script>
-        // Variáveis globais
-        const localStorageKey = 'nanoInvestimentos';
-        let metaPatrimonio = 150000;
+    <!-- Registro de Compra -->
+    <div class="card">
+        <h2>Registrar Compra</h2>
+        <form id="form-compra">
+            <label for="compra-quantidade">Quantidade de XNO comprada</label>
+            <input type="number" id="compra-quantidade" min="0.0001" step="0.0001" required />
+            <label for="compra-preco">Preço por XNO (R$)</label>
+            <input type="number" id="compra-preco" min="0.00001" step="0.00001" required />
+            <button type="submit">Adicionar Compra</button>
+        </form>
+    </div>
 
-        // Função para formatar números em reais
-        function formatBRL(value) {
-            return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-        }
+    <!-- Histórico de Compra -->
+    <div class="card">
+        <h2>Histórico de Compras</h2>
+        <table id="tabela-compras">
+            <thead>
+                <tr>
+                    <th>Quantidade (XNO)</th>
+                    <th>Preço Unitário (R$)</th>
+                    <th>Valor Total (R$)</th>
+                    <th>Data</th>
+                    <th>Ação</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Linhas compras -->
+            </tbody>
+        </table>
+    </div>
 
-        // Função para formatar XNO com 4 casas decimais
-        function formatXNO(value) {
-            return parseFloat(value).toFixed(4);
-        }
+    <!-- Registro de Venda -->
+    <div class="card">
+        <h2>Registrar Venda</h2>
+        <form id="form-venda">
+            <label for="venda-quantidade">Quantidade de XNO vendida</label>
+            <input type="number" id="venda-quantidade" min="0.0001" step="0.0001" required />
+            <label for="venda-preco">Preço por XNO (R$)</label>
+            <input type="number" id="venda-preco" min="0.00001" step="0.00001" required />
+            <button type="submit">Adicionar Venda</button>
+        </form>
+    </div>
 
-        // Pega dados do localStorage ou inicializa vazio
-        function carregarDados() {
-            const dados = localStorage.getItem(localStorageKey);
-            if (dados) return JSON.parse(dados);
-            return {
-                transacoes: [],
-                meta: metaPatrimonio
-            };
-        }
+    <!-- Histórico de Venda -->
+    <div class="card">
+        <h2>Histórico de Vendas</h2>
+        <table id="tabela-vendas">
+            <thead>
+                <tr>
+                    <th>Quantidade (XNO)</th>
+                    <th>Preço Unitário (R$)</th>
+                    <th>Valor Total (R$)</th>
+                    <th>Data</th>
+                    <th>Ação</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Linhas vendas -->
+            </tbody>
+        </table>
+    </div>
+</div>
 
-        // Salva dados no localStorage
-        function salvarDados(dados) {
-            localStorage.setItem(localStorageKey, JSON.stringify(dados));
-        }
+<script>
+const storageKey = 'nanoInvestimentosXNO';
 
-        // Atualiza data do rodapé
-        function atualizarDataAtualizacao() {
-            const hoje = new Date();
-            document.getElementById('data-atualizacao').innerText = hoje.toLocaleString('pt-BR', {dateStyle: 'short', timeStyle: 'short'});
-        }
+// Função para formatar valores em R$
+function formatBRL(value) {
+    return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
 
-        // Atualiza UI dos valores e métricas
-        function atualizarDashboard(dados, precoAtual) {
-            // Calcular total de XNO e total investido
-            let totalXNO = 0;
-            let totalInvestido = 0;
-            dados.transacoes.forEach(tx => {
-                totalXNO += Number(tx.quantidade);
-                totalInvestido += Number(tx.valorTotal);
-            });
+// Função para formatar quantidade XNO com 4 casas decimais
+function formatXNO(value) {
+    return parseFloat(value).toFixed(4);
+}
 
-            // Preço médio
-            let precoMedio = totalInvestido / totalXNO || 0;
+// Carregar dados do localStorage ou criar estrutura inicial
+function carregarDados() {
+    const dados = localStorage.getItem(storageKey);
+    if (dados) return JSON.parse(dados);
+    return {
+        compras: [],
+        vendas: []
+    };
+}
 
-            // Patrimônio atual
-            let patrimonioAtual = totalXNO * precoAtual;
+// Salvar dados no localStorage
+function salvarDados(dados) {
+    localStorage.setItem(storageKey, JSON.stringify(dados));
+}
 
-            // Falta para a meta
-            let faltaParaMeta = metaPatrimonio - patrimonioAtual;
-            if(faltaParaMeta < 0) faltaParaMeta = 0;
+// Atualizar dashboard principal
+function atualizarDashboard(dados) {
+    // Calcular totais
+    let totalXNO = 0;
+    let totalInvestido = 0;
+    dados.compras.forEach(c => {
+        totalXNO += c.quantidade;
+        totalInvestido += c.quantidade * c.preco;
+    });
 
-            // XNO necessários para meta
-            let xnoParaMeta = faltaParaMeta / precoAtual || 0;
+    let totalVendido = 0;
+    let totalRecebido = 0;
+    dados.vendas.forEach(v => {
+        totalVendido += v.quantidade;
+        totalRecebido += v.quantidade * v.preco;
+    });
 
-            // Lucro ou prejuízo total
-            let lucroPrejuizo = patrimonioAtual - totalInvestido;
+    // Preço médio compra
+    const precoMedio = totalXNO ? totalInvestido / totalXNO : 0;
 
-            // Atualizar elementos na página
-            document.getElementById('total-xno').innerText = formatXNO(totalXNO);
-            document.getElementById('preco-medio').innerText = formatBRL(precoMedio);
-            document.getElementById('patrimonio-atual').innerText = formatBRL(patrimonioAtual);
-            document.getElementById('falta-para-meta').innerText = formatBRL(faltaParaMeta);
-            document.getElementById('xno-para-meta').innerText = formatXNO(xnoParaMeta);
-            document.getElementById('total-investido').innerText = formatBRL(totalInvestido);
+    // Lucro/prejuízo = total recebido em vendas - preço médio * total vendido
+    const lucroPrejuizo = totalRecebido - (precoMedio * totalVendido);
 
-            const profitLossElem = document.getElementById('profit-loss');
-            profitLossElem.innerText = lucroPrejuizo >= 0 ? '+' + formatBRL(lucroPrejuizo) : formatBRL(lucroPrejuizo);
-            profitLossElem.className = lucroPrejuizo >= 0 ? 'profit' : 'loss';
-
-            // Atualiza barra de progresso
-            const progresso = Math.min((patrimonioAtual / metaPatrimonio) * 100, 100);
-            const progressBar = document.getElementById('progress-bar');
-            progressBar.style.width = progresso + '%';
-            progressBar.innerText = progresso.toFixed(1) + '%';
-
-            // Atualiza input meta
-            document.getElementById('meta-value').value = metaPatrimonio.toFixed(0);
-        }
-
-        // Exibe histórico de compras na tabela
-        function atualizarTabela(dados) {
-            const tbody = document.getElementById('transaction-tbody');
-            tbody.innerHTML = '';
-
-            if(dados.transacoes.length === 0) {
-                const tr = document.createElement('tr');
-                const td = document.createElement('td');
-                td.colSpan = 5;
-                td.style.textAlign = 'center';
-                td.innerText = 'Nenhuma compra registrada.';
-                tr.appendChild(td);
-                tbody.appendChild(tr);
-                return;
-            }
-
-            dados.transacoes.forEach((tx, index) => {
-                const tr = document.createElement('tr');
-
-                const tdQtd = document.createElement('td');
-                tdQtd.innerText = formatXNO(tx.quantidade);
-                tr.appendChild(tdQtd);
-
-                const tdPreco = document.createElement('td');
-                tdPreco.innerText = formatBRL(Number(tx.precoUnitario));
-                tr.appendChild(tdPreco);
-
-                const tdTotal = document.createElement('td');
-                tdTotal.innerText = formatBRL(Number(tx.valorTotal));
-                tr.appendChild(tdTotal);
-
-                const tdData = document.createElement('td');
-                tdData.innerText = new Date(tx.data).toLocaleString('pt-BR');
-                tr.appendChild(tdData);
-
-                const tdAcao = document.createElement('td');
-                const btnExcluir = document.createElement('button');
-                btnExcluir.innerText = 'Excluir';
-                btnExcluir.style.backgroundColor = 'var(--red-color)';
-                btnExcluir.style.color = '#fff';
-                btnExcluir.style.border = 'none';
-                btnExcluir.style.padding = '5px 10px';
-                btnExcluir.style.borderRadius = '4px';
-                btnExcluir.style.cursor = 'pointer';
-                btnExcluir.onclick = () => {
-                    if(confirm('Deseja realmente excluir esta compra?')) {
-                        dados.transacoes.splice(index, 1);
-                        salvarDados(dados);
-                        atualizarTabela(dados);
-                        atualizarDashboard(dados, precoAtualGlobal);
-                    }
-                };
-                tdAcao.appendChild(btnExcluir);
-                tr.appendChild(tdAcao);
-
-                tbody.appendChild(tr);
-            });
-        }
-
-        // Variável global para preço atual do Nano
-        let precoAtualGlobal = 0;
-
-        // Buscar preço do Nano na API CoinGecko
-        async function buscarPrecoNano() {
-            try {
-                const resposta = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=nano&vs_currencies=brl');
-                const dados = await resposta.json();
-                if(dados.nano && dados.nano.brl) {
-                    precoAtualGlobal = Number(dados.nano.brl);
-                    document.getElementById('live-price').innerText = `Preço Atual Nano (XNO): ${formatBRL(precoAtualGlobal)}`;
-                    return precoAtualGlobal;
-                } else {
-                    document.getElementById('live-price').innerText = 'Erro ao obter cotação Nano.';
-                    return 0;
-                }
-            } catch (error) {
-                document.getElementById('live-price').innerText = 'Erro na conexão API.';
-                return 0;
-            }
-        }
-
-        // Inicialização
-        async function init() {
-            atualizarDataAtualizacao();
-
-            // Carregar dados e meta
-            const dados = carregarDados();
-            metaPatrimonio = dados.meta || metaPatrimonio;
-
-            // Atualizar input meta com valor salvo
-            document.getElementById('meta-value').value = metaPatrimonio.toFixed(0);
-
-            // Buscar preço do Nano
-            const preco = await buscarPrecoNano();
-
-            atualizarDashboard(dados, preco);
-            atualizarTabela(dados);
-
-            // Eventos
-            document.getElementById('form-add-compra').addEventListener('submit', (e) => {
-                e.preventDefault();
-
-                const quantidade = parseFloat(document.getElementById('compra-quantidade').value);
-                const precoUnitario = parseFloat(document.getElementById('compra-preco').value);
-
-                if(isNaN(quantidade) || quantidade <= 0 || isNaN(precoUnitario) || precoUnitario <= 0){
-                    alert('Por favor, insira valores válidos para quantidade e preço.');
-                    return;
-                }
-
-                const valorTotal = quantidade * precoUnitario;
-
-                const novaCompra = {
-                    quantidade: quantidade,
-                    precoUnitario: precoUnitario,
-                    valorTotal: valorTotal,
-                    data: new Date().toISOString()
-                };
-
-                dados.transacoes.push(novaCompra);
-                salvarDados(dados);
-                atualizarTabela(dados);
-                atualizarDashboard(dados, precoAtualGlobal);
-
-                e.target.reset();
-            });
-
-            // Alterar meta
-            document.getElementById('meta-value').addEventListener('change', (e) => {
-                let novoValor = parseFloat(e.target.value);
-                if(isNaN(novoValor) || novoValor <= 0) {
-                    alert('Meta deve ser um valor maior que zero.');
-                    e.target.value = metaPatrimonio;
-                    return;
-                }
-                metaPatrimonio = novoValor;
-                dados.meta = metaPatrimonio;
-                salvarDados(dados);
-                atualizarDashboard(dados, precoAtualGlobal);
-            });
-
-            // Simulador de renda passiva
-            document.getElementById('form-simulador').addEventListener('submit', (e) => {
-                e.preventDefault();
-                const simXNO = parseFloat(document.getElementById('sim-xno').value);
-                const simRendimento = parseFloat(document.getElementById('sim-rendimento').value);
-
-                if(isNaN(simXNO) || simXNO <= 0 || isNaN(simRendimento) || simRendimento < 0){
-                    alert('Insira valores válidos para simulação.');
-                    return;
-                }
-
-                // Renda passiva mensal = quantidade * preço atual * rendimento%
-                const rendaPassiva = simXNO * precoAtualGlobal * (simRendimento / 100);
-
-                const resultado = `Renda passiva mensal estimada: ${formatBRL(rendaPassiva)}`;
-                document.getElementById('resultado-renda').innerText = resultado;
-            });
-
-            // Atualizar preço e dashboard a cada 2 minutos
-            setInterval(async () => {
-                const novoPreco = await buscarPrecoNano();
-                atualizarDashboard(carregarDados(), novoPreco);
-                atualizarDataAtualizacao();
-            }, 120000);
-        }
-
-        init();
-    </script>
-</body>
-</html>
+    // Patrimonio atual = totalXNO - totalVendido * preco atual — Aqui simplifico assumindo preço atual = preco médio
+    const patrimonioAtual = (totalXNO - totalVendido) *
