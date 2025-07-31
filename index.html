@@ -1,235 +1,133 @@
-<!-- ...mantém todo conteúdo anterior -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Investimento XNO</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0; padding: 20px;
+      background-color: #f0f2f5;
+    }
+    h1, h2 {
+      text-align: center;
+    }
+    section {
+      background: white;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 5px #ccc;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      padding: 8px;
+      text-align: center;
+      border: 1px solid #ccc;
+    }
+    input[type="number"] {
+      width: 100%;
+      padding: 5px;
+    }
+    button {
+      padding: 8px 12px;
+      background: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    @media (max-width: 600px) {
+      body {
+        padding: 10px;
+      }
+      table, thead, tbody, th, td, tr {
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
 
-<div class="card">
-    <h2>Projeções de Patrimônio</h2>
-    <table class="projection-table" style="width:100%;">
-        <thead><tr><th>Cenário</th><th>Cotação (USD)</th><th>Patrimônio (BRL)</th></tr></thead>
-        <tbody id="projection-list"></tbody>
-    </table>
-</div>
+  <h1>Investimento em Nano (XNO)</h1>
 
-<!-- ADICIONANDO FORMULÁRIO DE VENDA -->
-<div class="card">
-    <h2>Registrar Venda</h2>
-    <form id="sale-form">
-        <label for="sale-date">Data:</label>
-        <input type="date" id="sale-date" required />
-        <label for="sale-xno-amount">Quantidade (XNO):</label>
-        <input type="number" id="sale-xno-amount" step="0.0001" min="0.0001" required />
-        <label for="sale-brl-value">Valor (BRL):</label>
-        <input type="number" id="sale-brl-value" step="0.01" min="0.01" required />
-        <button type="submit">Adicionar Venda</button>
+  <section>
+    <h2>Dashboard</h2>
+    <p>Total em XNO: <strong id="total-xno">0</strong></p>
+    <p>Total Investido: <strong id="total-compras">R$ 0,00</strong></p>
+    <p>Preço Médio: <strong id="preco-medio">R$ 0,00</strong></p>
+    <p>Total Vendido: <strong id="total-vendido">0</strong></p>
+    <p>Total Recebido: <strong id="total-vendas">R$ 0,00</strong></p>
+    <p>Lucro / Prejuízo: <strong id="lucro-prejuizo">R$ 0,00</strong></p>
+    <p>Patrimônio Atual: <strong id="patrimonio-atual">R$ 0,00</strong></p>
+  </section>
+
+  <section>
+    <h2>Registrar Compra</h2>
+    <form id="form-compra">
+      <label>Quantidade (XNO): <input type="number" step="0.000001" id="compra-quantidade" required></label><br><br>
+      <label>Preço Unitário (R$): <input type="number" step="0.01" id="compra-preco" required></label><br><br>
+      <button type="submit">Adicionar Compra</button>
     </form>
-</div>
+  </section>
 
-<!-- HISTÓRICO DE VENDAS -->
-<div class="card">
-    <h2>Histórico de Vendas</h2>
-    <table class="projection-table" style="width:100%;">
-        <thead><tr><th>Data</th><th>XNO</th><th>Valor (BRL)</th></tr></thead>
-        <tbody id="sales-list"></tbody>
+  <section>
+    <h2>Histórico de Compras</h2>
+    <table id="tabela-compras">
+      <thead>
+        <tr>
+          <th>Quantidade</th>
+          <th>Preço Unitário</th>
+          <th>Total</th>
+          <th>Data</th>
+          <th>Ação</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
     </table>
-</div>
+  </section>
 
-<footer>
-    <p>Os dados de lançamento são salvos localmente no seu navegador. As cotações são fornecidas pela API da CoinGecko e atualizadas a cada hora.</p>
-    <p>Isto não é uma recomendação de investimento.</p>
-</footer>
+  <section>
+    <h2>Registrar Venda</h2>
+    <form id="form-venda">
+      <label>Quantidade (XNO): <input type="number" step="0.000001" id="venda-quantidade" required></label><br><br>
+      <label>Preço Unitário (R$): <input type="number" step="0.01" id="venda-preco" required></label><br><br>
+      <button type="submit">Adicionar Venda</button>
+    </form>
+  </section>
 
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        // Variáveis já existentes
-        const totalXnoEl = document.getElementById('total-xno');
-        const patrimonioAtualEl = document.getElementById('patrimonio-atual');
-        const precoMedioEl = document.getElementById('preco-medio');
-        const totalInvestidoEl = document.getElementById('total-investido');
-        const progressBarEl = document.getElementById('progress-bar');
-        const progressTitleEl = document.getElementById('progress-title');
-        const transactionForm = document.getElementById('transaction-form');
-        const transactionListEl = document.getElementById('transaction-list');
-        const projectionListEl = document.getElementById('projection-list');
-        const livePriceEl = document.getElementById('live-price');
-        const resetButton = document.getElementById('reset-button');
-        const faltaParaMetaEl = document.getElementById('falta-para-meta');
-        const xnoParaMetaEl = document.getElementById('xno-para-meta');
-        const profitLossEl = document.getElementById('profit-loss');
-        const metaInput = document.getElementById('meta-value');
+  <section>
+    <h2>Histórico de Vendas</h2>
+    <table id="tabela-vendas">
+      <thead>
+        <tr>
+          <th>Quantidade</th>
+          <th>Preço Unitário</th>
+          <th>Total</th>
+          <th>Data</th>
+          <th>Ação</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
 
-        // NOVAS variáveis para vendas
-        const saleForm = document.getElementById('sale-form');
-        const salesListEl = document.getElementById('sales-list');
+  <script>
+    function carregarDados() {
+      return JSON.parse(localStorage.getItem('dadosXNO')) || { compras: [], vendas: [] };
+    }
 
-        // Dados armazenados
-        let transactions = JSON.parse(localStorage.getItem('xno_transactions')) || [];
-        let sales = JSON.parse(localStorage.getItem('xno_sales')) || [];
-        let xnoPrice = { usd: 0, brl: 0 };
-        let metaBRL = parseFloat(localStorage.getItem('xno_meta')) || 150000;
+    function salvarDados(dados) {
+      localStorage.setItem('dadosXNO', JSON.stringify(dados));
+    }
 
-        // Cenários de projeção (mantém igual)
-        const projectionScenarios = [
-            { name: 'Conservador', price: 5 }, { name: 'Otimista', price: 10 },
-            { name: 'Retorno ao Topo', price: 20 }, { name: 'Topo Histórico', price: 33 },
-            { name: 'Muito Otimista', price: 50 },
-        ];
-
-        async function fetchPrices() {
-            try {
-                const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=nano&vs_currencies=usd,brl');
-                const data = await response.json();
-                xnoPrice.usd = data.nano.usd;
-                xnoPrice.brl = data.nano.brl;
-                livePriceEl.textContent = `Cotação Atual: 1 XNO = $${xnoPrice.usd.toFixed(4)} USD / R$${xnoPrice.brl.toFixed(2)} BRL`;
-                updateUI();
-            } catch {
-                livePriceEl.textContent = 'Erro ao buscar cotação.';
-            }
-        }
-
-        function updateUI() {
-            // calcula saldo líquido: total comprado - total vendido
-            const totalXNOComprado = transactions.reduce((sum, t) => sum + t.xno, 0);
-            const totalXNOVendido = sales.reduce((sum, s) => sum + s.xno, 0);
-            const saldoXNO = totalXNOComprado - totalXNOVendido;
-
-            // total investido = soma das compras (não muda)
-            const totalInvestido = transactions.reduce((sum, t) => sum + t.brl, 0);
-
-            // patrimônio atual = saldo XNO * preço BRL
-            const patrimonioAtual = saldoXNO * xnoPrice.brl;
-
-            // preço médio considerando apenas compras
-            const precoMedio = saldoXNO > 0 ? totalInvestido / totalXNOComprado : 0;
-
-            totalXnoEl.textContent = saldoXNO.toFixed(4);
-            totalInvestidoEl.textContent = formatCurrencyBRL(totalInvestido);
-            patrimonioAtualEl.textContent = formatCurrencyBRL(patrimonioAtual);
-            precoMedioEl.textContent = formatCurrencyBRL(precoMedio);
-
-            const progress = (patrimonioAtual / metaBRL) * 100;
-            progressBarEl.style.width = `${Math.min(progress, 100)}%`;
-            progressBarEl.textContent = `${progress.toFixed(2)}%`;
-
-            const faltaParaMeta = Math.max(0, metaBRL - patrimonioAtual);
-            faltaParaMetaEl.textContent = formatCurrencyBRL(faltaParaMeta);
-
-            if (faltaParaMeta <= 0) {
-                xnoParaMetaEl.textContent = "🎉 Meta Atingida!";
-                xnoParaMetaEl.style.color = '#ffd700';
-            } else {
-                const xnoNecessarios = faltaParaMeta / xnoPrice.brl;
-                xnoParaMetaEl.textContent = `${xnoNecessarios.toFixed(2)} XNO`;
-                xnoParaMetaEl.style.color = 'var(--primary-color)';
-            }
-
-            const profitLoss = patrimonioAtual - totalInvestido;
-            const profitPercent = totalInvestido > 0 ? (profitLoss / totalInvestido) * 100 : 0;
-
-            profitLossEl.textContent = `${formatCurrencyBRL(profitLoss)} (${profitPercent.toFixed(2)}%)`;
-            profitLossEl.classList.toggle('profit', profitLoss >= 0);
-            profitLossEl.classList.toggle('loss', profitLoss < 0);
-
-            updateMetaDisplay();
-            renderTransactionList();
-            renderSalesList();
-            updateProjections(saldoXNO);
-        }
-
-        function updateMetaDisplay() {
-            progressTitleEl.textContent = `Progresso até a Meta (${formatCurrencyBRL(metaBRL)})`;
-            metaInput.value = metaBRL;
-        }
-
-        function renderTransactionList() {
-            transactionListEl.innerHTML = '';
-            transactions.slice().reverse().forEach(t => {
-                const row = document.createElement('tr');
-                row.innerHTML = `<td>${new Date(t.date).toLocaleDateString('pt-BR')}</td><td>${t.xno.toFixed(4)}</td><td>${formatCurrencyBRL(t.brl)}</td>`;
-                transactionListEl.appendChild(row);
-            });
-        }
-
-        // NOVA função para renderizar histórico de vendas
-        function renderSalesList() {
-            salesListEl.innerHTML = '';
-            sales.slice().reverse().forEach(s => {
-                const row = document.createElement('tr');
-                row.innerHTML = `<td>${new Date(s.date).toLocaleDateString('pt-BR')}</td><td>${s.xno.toFixed(4)}</td><td>${formatCurrencyBRL(s.brl)}</td>`;
-                salesListEl.appendChild(row);
-            });
-        }
-
-        function updateProjections(totalXNO) {
-            projectionListEl.innerHTML = '';
-            const usdToBrl = xnoPrice.brl / xnoPrice.usd;
-            projectionScenarios.forEach(s => {
-                const value = totalXNO * s.price * usdToBrl;
-                projectionListEl.innerHTML += `<tr><td>${s.name}</td><td>${formatCurrencyUSD(s.price)}</td><td>${formatCurrencyBRL(value)}</td></tr>`;
-            });
-        }
-
-        function formatCurrencyBRL(value) {
-            return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-        }
-
-        function formatCurrencyUSD(value) {
-            return `$${value.toFixed(2)}`;
-        }
-
-        // FORMULÁRIO COMPRAS (já existente)
-        transactionForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const date = document.getElementById('date').value;
-            const xno = parseFloat(document.getElementById('xno-amount').value);
-            const brl = parseFloat(document.getElementById('brl-value').value);
-            if (!date || isNaN(xno) || isNaN(brl)) return;
-            transactions.push({ date, xno, brl });
-            localStorage.setItem('xno_transactions', JSON.stringify(transactions));
-            updateUI();
-            transactionForm.reset();
-        });
-
-        // NOVO: formulário de vendas
-        saleForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const date = document.getElementById('sale-date').value;
-            const xno = parseFloat(document.getElementById('sale-xno-amount').value);
-            const brl = parseFloat(document.getElementById('sale-brl-value').value);
-
-            if (!date || isNaN(xno) || isNaN(brl)) return alert('Preencha todos os campos corretamente.');
-
-            // Valida se há saldo suficiente para vender
-            const totalXNOComprado = transactions.reduce((sum, t) => sum + t.xno, 0);
-            const totalXNOVendido = sales.reduce((sum, s) => sum + s.xno, 0);
-            const saldoXNO = totalXNOComprado - totalXNOVendido;
-
-            if (xno > saldoXNO) return alert('Saldo insuficiente para essa venda.');
-
-            sales.push({ date, xno, brl });
-            localStorage.setItem('xno_sales', JSON.stringify(sales));
-            updateUI();
-            saleForm.reset();
-        });
-
-        resetButton.addEventListener('click', () => {
-            if (confirm('Tem certeza que deseja apagar todo o histórico?')) {
-                transactions = [];
-                sales = [];
-                localStorage.removeItem('xno_transactions');
-                localStorage.removeItem('xno_sales');
-                updateUI();
-            }
-        });
-
-        metaInput.addEventListener('change', () => {
-            const newMeta = parseFloat(metaInput.value);
-            if (!isNaN(newMeta) && newMeta > 0) {
-                metaBRL = newMeta;
-                localStorage.setItem('xno_meta', metaBRL);
-                updateUI();
-            }
-        });
-
-        fetchPrices();
-        setInterval(fetchPrices, 60 * 60 * 1000); // Atualiza a cada hora
-    });
-</script>
+    function formatBRL(valor) {
+      return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL'
