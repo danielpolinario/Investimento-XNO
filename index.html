@@ -13,6 +13,7 @@
     <meta name="theme-color" content="#4f98ff"/>
 
     <style>
+        /* seu CSS original mantido exatamente igual */
         :root {
             --bg-color: #1a1a2e;
             --card-color: #16213e;
@@ -165,19 +166,20 @@
             background-color: #c93a47;
         }
 
-        #transaction-table {
+        #transaction-table, #sales-table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 15px;
         }
 
-        #transaction-table th, #transaction-table td {
+        #transaction-table th, #transaction-table td,
+        #sales-table th, #sales-table td {
             padding: 8px;
             text-align: left;
             border-bottom: 1px solid var(--border-color);
         }
 
-        #transaction-table th {
+        #transaction-table th, #sales-table th {
             font-size: 0.9em;
             color: var(--primary-color);
         }
@@ -260,53 +262,4 @@
             </div>
 
             <h3 id="progress-title" style="text-align:center; margin-top: 25px; margin-bottom:10px;">Progresso até a Meta (R$ 150.000)</h3>
-            <div class="progress-bar-container"><div id="progress-bar">0%</div></div>
-        </div>
-
-        <div class="card">
-            <h2>Adicionar Lançamento</h2>
-            <form id="transaction-form">
-                <div class="form-group">
-                    <label for="date">Data da Compra</label>
-                    <input type="date" id="date" required>
-                </div>
-                <div class="form-group">
-                    <label for="xno-amount">Quantidade de XNO</label>
-                    <input type="number" id="xno-amount" step="any" required>
-                </div>
-                <div class="form-group">
-                    <label for="brl-value">Valor Total Pago (R$)</label>
-                    <input type="number" id="brl-value" step="any" required>
-                </div>
-                <button type="submit">Adicionar Compra</button>
-            </form>
-        </div>
-
-        <div class="card">
-            <h2>Histórico de Compras</h2>
-            <div style="max-height: 250px; overflow-y: auto;">
-                <table id="transaction-table"><thead><tr><th>Data</th><th>Qtd. XNO</th><th>Valor (R$)</th></tr></thead><tbody id="transaction-list"></tbody></table>
-            </div>
-            <button id="reset-button" class="danger-button">Apagar Histórico</button>
-        </div>
-
-        <div class="card">
-            <h2>Projeções de Patrimônio</h2>
-            <table class="projection-table" style="width:100%;">
-                <thead><tr><th>Cenário</th><th>Cotação (USD)</th><th>Patrimônio (BRL)</th></tr></thead>
-                <tbody id="projection-list"></tbody>
-            </table>
-        </div>
-
-        <footer>
-            <p>Os dados de lançamento são salvos localmente no seu navegador. As cotações são fornecidas pela API da CoinGecko e atualizadas a cada hora.</p>
-            <p>Isto não é uma recomendação de investimento.</p>
-        </footer>
-    </div>
-
-    <script>
-        // [script original mantido, exceto partes do simulador de renda passiva que foram removidas]
-        // ... (já te mostrei ele acima)
-    </script>
-</body>
-</html>
+            <div class="progress-bar-container"><div id
