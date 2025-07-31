@@ -5,11 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel de Controle Nano (XNO)</title>
     
-    <!-- PWA Configuration -->
-    <link rel="manifest" href="/manifest.json">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    
     <!-- Incluindo Chart.js para os gráficos -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
@@ -259,37 +254,9 @@
             display: none;
         }
 
-        /* Botão de instalação PWA */
-        .install-btn {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            font-size: 24px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-            cursor: pointer;
-            display: none;
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .install-btn:hover {
-            background-color: #3a7dcf;
-        }
-
         @media (max-width: 768px) {
             .two-columns {
                 grid-template-columns: 1fr;
-            }
-            
-            .install-btn {
-                display: flex;
             }
         }
     </style>
@@ -410,9 +377,6 @@
         </footer>
     </div>
 
-    <!-- Botão de instalação PWA -->
-    <button id="installButton" class="install-btn" title="Instalar App">↓</button>
-
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // Elementos do DOM
@@ -437,14 +401,12 @@
             const currentPriceSpan = document.getElementById('current-price-span');
             const startDateEl = document.getElementById('start-date');
             const endDateEl = document.getElementById('end-date');
-            const installButton = document.getElementById('installButton');
 
             // Estado da aplicação
             let transactions = JSON.parse(localStorage.getItem('xno_transactions')) || [];
             let xnoPrice = { usd: 0, brl: 0 };
             let metaBRL = 150000;
             let portfolioChart;
-            let deferredPrompt;
 
             // Inicializar gráfico
             const ctx = document.getElementById('portfolio-chart').getContext('2d');
@@ -751,36 +713,6 @@
             function formatCurrencyBRL(value) {
                 return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
             }
-
-            // PWA Installation Logic
-            window.addEventListener('beforeinstallprompt', (e) => {
-                // Previne o prompt automático
-                e.preventDefault();
-                // Guarda o evento para que possa ser acionado depois
-                deferredPrompt = e;
-                // Mostra o botão de instalação
-                installButton.style.display = 'flex';
-            });
-
-            installButton.addEventListener('click', async () => {
-                if (deferredPrompt) {
-                    // Mostra o prompt de instalação
-                    deferredPrompt.prompt();
-                    // Espera pelo resultado
-                    const { outcome } = await deferredPrompt.userChoice;
-                    // Esconde o botão independente do resultado
-                    installButton.style.display = 'none';
-                    // Limpa a referência
-                    deferredPrompt = null;
-                }
-            });
-
-            window.addEventListener('appinstalled', () => {
-                // Esconde o botão após instalação
-                installButton.style.display = 'none';
-                // Limpa a referência
-                deferredPrompt = null;
-            });
 
             // Event Listeners
             transactionForm.addEventListener('submit', addTransaction);

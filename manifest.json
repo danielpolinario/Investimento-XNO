@@ -1,7 +1,8 @@
 {
-  "name": "Investimentos em Nano (XNO)",
-  "short_name": "Nano XNO",
-  "start_url": "index.html",
+  "name": "Painel XNO",
+  "short_name": "XNO",
+  "description": "Painel de Controle de Investimentos em Nano (XNO)",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#1a1a2e",
   "theme_color": "#4f98ff",
