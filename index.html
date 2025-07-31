@@ -256,27 +256,25 @@
 
             <div style="text-align:center; margin-top: 20px;">
                 <label for="meta-value" style="font-size: 0.9em;">Editar Meta (R$)</label><br>
-                <input type="number" id="meta-value" style="width: 160px; margin-top: 5px; padding: 5px; border-radius: 5px; background-color: var(--bg-color); border: 1px solid var(--border-color); color: var(--font-color); text-align: center;">
+                <input type="number" id="meta-value" style="width: 160px; margin-top: 5px; padding: 5px; border-radius: 5px; background-color: var(--bg-color); border: 1px solid var(--border-color); color: var(--font-color); text-align: center;" min="0" step="1000" value="150000">
             </div>
 
-            <h3 id="progress-title" style="text-align:center; margin-top: 25px; margin-bottom:10px;">Progresso até a Meta (R$ 150.000)</h3>
-            <div class="progress-bar-container"><div id="progress-bar">0%</div></div>
+            <h3 style="margin-top: 25px;">Progresso até a Meta</h3>
+            <div class="progress-bar-container">
+                <div id="progress-bar">0%</div>
+            </div>
         </div>
 
         <div class="card">
-            <h2>Adicionar Lançamento</h2>
-            <form id="transaction-form">
+            <h2>Registrar Compra</h2>
+            <form id="form-add-compra">
                 <div class="form-group">
-                    <label for="date">Data da Compra</label>
-                    <input type="date" id="date" required>
+                    <label for="compra-quantidade">Quantidade de XNO comprada</label>
+                    <input type="number" id="compra-quantidade" min="0.0001" step="0.0001" required />
                 </div>
                 <div class="form-group">
-                    <label for="xno-amount">Quantidade de XNO</label>
-                    <input type="number" id="xno-amount" step="any" required>
-                </div>
-                <div class="form-group">
-                    <label for="brl-value">Valor Total Pago (R$)</label>
-                    <input type="number" id="brl-value" step="any" required>
+                    <label for="compra-preco">Preço por XNO (R$)</label>
+                    <input type="number" id="compra-preco" min="0.00001" step="0.00001" required />
                 </div>
                 <button type="submit">Adicionar Compra</button>
             </form>
@@ -284,197 +282,295 @@
 
         <div class="card">
             <h2>Histórico de Compras</h2>
-            <div style="max-height: 250px; overflow-y: auto;">
-                <table id="transaction-table"><thead><tr><th>Data</th><th>Qtd. XNO</th><th>Valor (R$)</th></tr></thead><tbody id="transaction-list"></tbody></table>
-            </div>
-            <button id="reset-button" class="danger-button">Apagar Histórico</button>
-        </div>
-
-        <div class="card">
-            <h2>Projeções de Patrimônio</h2>
-            <table class="projection-table" style="width:100%;">
-                <thead><tr><th>Cenário</th><th>Cotação (USD)</th><th>Patrimônio (BRL)</th></tr></thead>
-                <tbody id="projection-list"></tbody>
+            <table id="transaction-table">
+                <thead>
+                    <tr>
+                        <th>Quantidade (XNO)</th>
+                        <th>Preço Unitário (R$)</th>
+                        <th>Valor Total (R$)</th>
+                        <th>Data</th>
+                        <th>Ação</th>
+                    </tr>
+                </thead>
+                <tbody id="transaction-tbody">
+                    <!-- Linhas preenchidas via JS -->
+                </tbody>
             </table>
         </div>
 
-        <div class="card">
+        <div class="card" style="grid-column: 1 / -1;">
             <h2>Simulador de Renda Passiva</h2>
-            <div class="form-group">
-                <label for="sell-amount">Se eu vender <input type="number" id="sell-amount" value="15" style="width: 60px;"> XNO por mês...</label>
-            </div>
-            <div class="form-group">
-                <label for="sim-price">...com a cotação em <input type="number" id="sim-price" value="20" style="width: 60px;"> USD...</label>
-            </div>
-            <h3 id="passive-income-result" style="text-align: center; color: var(--green-color);"></h3>
+            <form id="form-simulador">
+                <div class="form-group">
+                    <label for="sim-xno">Quantidade de XNO para Simular</label>
+                    <input type="number" id="sim-xno" min="0" step="0.0001" required />
+                </div>
+                <div class="form-group">
+                    <label for="sim-rendimento">Rendimento Mensal (%)</label>
+                    <input type="number" id="sim-rendimento" min="0" step="0.01" value="1.3" required />
+                </div>
+                <button type="submit">Calcular Renda Passiva Mensal</button>
+            </form>
+            <div id="resultado-renda" style="margin-top: 15px; font-weight: bold;"></div>
         </div>
 
         <footer>
-            <p>Os dados de lançamento são salvos localmente no seu navegador. As cotações são fornecidas pela API da CoinGecko e atualizadas a cada hora.</p>
-            <p>Isto não é uma recomendação de investimento.</p>
+            Desenvolvido por Daniel Maurilio Polinario — Atualizado em <span id="data-atualizacao"></span>
         </footer>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const totalXnoEl = document.getElementById('total-xno');
-            const patrimonioAtualEl = document.getElementById('patrimonio-atual');
-            const precoMedioEl = document.getElementById('preco-medio');
-            const totalInvestidoEl = document.getElementById('total-investido');
-            const progressBarEl = document.getElementById('progress-bar');
-            const progressTitleEl = document.getElementById('progress-title');
-            const transactionForm = document.getElementById('transaction-form');
-            const transactionListEl = document.getElementById('transaction-list');
-            const projectionListEl = document.getElementById('projection-list');
-            const livePriceEl = document.getElementById('live-price');
-            const passiveIncomeResultEl = document.getElementById('passive-income-result');
-            const sellAmountInput = document.getElementById('sell-amount');
-            const simPriceInput = document.getElementById('sim-price');
-            const resetButton = document.getElementById('reset-button');
-            const faltaParaMetaEl = document.getElementById('falta-para-meta');
-            const xnoParaMetaEl = document.getElementById('xno-para-meta');
-            const profitLossEl = document.getElementById('profit-loss');
-            const metaInput = document.getElementById('meta-value');
+        // Variáveis globais
+        const localStorageKey = 'nanoInvestimentos';
+        let metaPatrimonio = 150000;
 
-            let transactions = JSON.parse(localStorage.getItem('xno_transactions')) || [];
-            let xnoPrice = { usd: 0, brl: 0 };
-            let metaBRL = parseFloat(localStorage.getItem('xno_meta')) || 150000;
+        // Função para formatar números em reais
+        function formatBRL(value) {
+            return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
 
-            const projectionScenarios = [
-                { name: 'Conservador', price: 5 }, { name: 'Otimista', price: 10 },
-                { name: 'Retorno ao Topo', price: 20 }, { name: 'Topo Histórico', price: 33 },
-                { name: 'Muito Otimista', price: 50 },
-            ];
+        // Função para formatar XNO com 4 casas decimais
+        function formatXNO(value) {
+            return parseFloat(value).toFixed(4);
+        }
 
-            async function fetchPrices() {
-                try {
-                    const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=nano&vs_currencies=usd,brl');
-                    const data = await response.json();
-                    xnoPrice.usd = data.nano.usd;
-                    xnoPrice.brl = data.nano.brl;
-                    livePriceEl.textContent = `Cotação Atual: 1 XNO = $${xnoPrice.usd.toFixed(4)} USD / R$${xnoPrice.brl.toFixed(2)} BRL`;
-                    updateUI();
-                } catch {
-                    livePriceEl.textContent = 'Erro ao buscar cotação.';
-                }
+        // Pega dados do localStorage ou inicializa vazio
+        function carregarDados() {
+            const dados = localStorage.getItem(localStorageKey);
+            if (dados) return JSON.parse(dados);
+            return {
+                transacoes: [],
+                meta: metaPatrimonio
+            };
+        }
+
+        // Salva dados no localStorage
+        function salvarDados(dados) {
+            localStorage.setItem(localStorageKey, JSON.stringify(dados));
+        }
+
+        // Atualiza data do rodapé
+        function atualizarDataAtualizacao() {
+            const hoje = new Date();
+            document.getElementById('data-atualizacao').innerText = hoje.toLocaleString('pt-BR', {dateStyle: 'short', timeStyle: 'short'});
+        }
+
+        // Atualiza UI dos valores e métricas
+        function atualizarDashboard(dados, precoAtual) {
+            // Calcular total de XNO e total investido
+            let totalXNO = 0;
+            let totalInvestido = 0;
+            dados.transacoes.forEach(tx => {
+                totalXNO += Number(tx.quantidade);
+                totalInvestido += Number(tx.valorTotal);
+            });
+
+            // Preço médio
+            let precoMedio = totalInvestido / totalXNO || 0;
+
+            // Patrimônio atual
+            let patrimonioAtual = totalXNO * precoAtual;
+
+            // Falta para a meta
+            let faltaParaMeta = metaPatrimonio - patrimonioAtual;
+            if(faltaParaMeta < 0) faltaParaMeta = 0;
+
+            // XNO necessários para meta
+            let xnoParaMeta = faltaParaMeta / precoAtual || 0;
+
+            // Lucro ou prejuízo total
+            let lucroPrejuizo = patrimonioAtual - totalInvestido;
+
+            // Atualizar elementos na página
+            document.getElementById('total-xno').innerText = formatXNO(totalXNO);
+            document.getElementById('preco-medio').innerText = formatBRL(precoMedio);
+            document.getElementById('patrimonio-atual').innerText = formatBRL(patrimonioAtual);
+            document.getElementById('falta-para-meta').innerText = formatBRL(faltaParaMeta);
+            document.getElementById('xno-para-meta').innerText = formatXNO(xnoParaMeta);
+            document.getElementById('total-investido').innerText = formatBRL(totalInvestido);
+
+            const profitLossElem = document.getElementById('profit-loss');
+            profitLossElem.innerText = lucroPrejuizo >= 0 ? '+' + formatBRL(lucroPrejuizo) : formatBRL(lucroPrejuizo);
+            profitLossElem.className = lucroPrejuizo >= 0 ? 'profit' : 'loss';
+
+            // Atualiza barra de progresso
+            const progresso = Math.min((patrimonioAtual / metaPatrimonio) * 100, 100);
+            const progressBar = document.getElementById('progress-bar');
+            progressBar.style.width = progresso + '%';
+            progressBar.innerText = progresso.toFixed(1) + '%';
+
+            // Atualiza input meta
+            document.getElementById('meta-value').value = metaPatrimonio.toFixed(0);
+        }
+
+        // Exibe histórico de compras na tabela
+        function atualizarTabela(dados) {
+            const tbody = document.getElementById('transaction-tbody');
+            tbody.innerHTML = '';
+
+            if(dados.transacoes.length === 0) {
+                const tr = document.createElement('tr');
+                const td = document.createElement('td');
+                td.colSpan = 5;
+                td.style.textAlign = 'center';
+                td.innerText = 'Nenhuma compra registrada.';
+                tr.appendChild(td);
+                tbody.appendChild(tr);
+                return;
             }
 
-            function updateUI() {
-                const totalXNO = transactions.reduce((sum, t) => sum + t.xno, 0);
-                const totalInvested = transactions.reduce((sum, t) => sum + t.brl, 0);
-                const patrimonioAtual = totalXNO * xnoPrice.brl;
-                const precoMedio = totalXNO > 0 ? totalInvested / totalXNO : 0;
+            dados.transacoes.forEach((tx, index) => {
+                const tr = document.createElement('tr');
 
-                totalXnoEl.textContent = totalXNO.toFixed(4);
-                totalInvestidoEl.textContent = formatCurrencyBRL(totalInvested);
-                patrimonioAtualEl.textContent = formatCurrencyBRL(patrimonioAtual);
-                precoMedioEl.textContent = formatCurrencyBRL(precoMedio);
+                const tdQtd = document.createElement('td');
+                tdQtd.innerText = formatXNO(tx.quantidade);
+                tr.appendChild(tdQtd);
 
-                const progress = (patrimonioAtual / metaBRL) * 100;
-                progressBarEl.style.width = `${Math.min(progress, 100)}%`;
-                progressBarEl.textContent = `${progress.toFixed(2)}%`;
+                const tdPreco = document.createElement('td');
+                tdPreco.innerText = formatBRL(Number(tx.precoUnitario));
+                tr.appendChild(tdPreco);
 
-                const faltaParaMeta = Math.max(0, metaBRL - patrimonioAtual);
-                faltaParaMetaEl.textContent = formatCurrencyBRL(faltaParaMeta);
+                const tdTotal = document.createElement('td');
+                tdTotal.innerText = formatBRL(Number(tx.valorTotal));
+                tr.appendChild(tdTotal);
 
-                if (faltaParaMeta <= 0) {
-                    xnoParaMetaEl.textContent = "🎉 Meta Atingida!";
-                    xnoParaMetaEl.style.color = '#ffd700';
+                const tdData = document.createElement('td');
+                tdData.innerText = new Date(tx.data).toLocaleString('pt-BR');
+                tr.appendChild(tdData);
+
+                const tdAcao = document.createElement('td');
+                const btnExcluir = document.createElement('button');
+                btnExcluir.innerText = 'Excluir';
+                btnExcluir.style.backgroundColor = 'var(--red-color)';
+                btnExcluir.style.color = '#fff';
+                btnExcluir.style.border = 'none';
+                btnExcluir.style.padding = '5px 10px';
+                btnExcluir.style.borderRadius = '4px';
+                btnExcluir.style.cursor = 'pointer';
+                btnExcluir.onclick = () => {
+                    if(confirm('Deseja realmente excluir esta compra?')) {
+                        dados.transacoes.splice(index, 1);
+                        salvarDados(dados);
+                        atualizarTabela(dados);
+                        atualizarDashboard(dados, precoAtualGlobal);
+                    }
+                };
+                tdAcao.appendChild(btnExcluir);
+                tr.appendChild(tdAcao);
+
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Variável global para preço atual do Nano
+        let precoAtualGlobal = 0;
+
+        // Buscar preço do Nano na API CoinGecko
+        async function buscarPrecoNano() {
+            try {
+                const resposta = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=nano&vs_currencies=brl');
+                const dados = await resposta.json();
+                if(dados.nano && dados.nano.brl) {
+                    precoAtualGlobal = Number(dados.nano.brl);
+                    document.getElementById('live-price').innerText = `Preço Atual Nano (XNO): ${formatBRL(precoAtualGlobal)}`;
+                    return precoAtualGlobal;
                 } else {
-                    const xnoNecessarios = faltaParaMeta / xnoPrice.brl;
-                    xnoParaMetaEl.textContent = `${xnoNecessarios.toFixed(2)} XNO`;
-                    xnoParaMetaEl.style.color = 'var(--primary-color)';
+                    document.getElementById('live-price').innerText = 'Erro ao obter cotação Nano.';
+                    return 0;
                 }
-
-                const profitLoss = patrimonioAtual - totalInvested;
-                const profitPercent = totalInvested > 0 ? (profitLoss / totalInvested) * 100 : 0;
-
-                profitLossEl.textContent = `${formatCurrencyBRL(profitLoss)} (${profitPercent.toFixed(2)}%)`;
-                profitLossEl.classList.toggle('profit', profitLoss >= 0);
-                profitLossEl.classList.toggle('loss', profitLoss < 0);
-
-                updateMetaDisplay();
-                renderTransactionList();
-                updateProjections(totalXNO);
-                updatePassiveIncomeSimulator();
+            } catch (error) {
+                document.getElementById('live-price').innerText = 'Erro na conexão API.';
+                return 0;
             }
+        }
 
-            function updateMetaDisplay() {
-                progressTitleEl.textContent = `Progresso até a Meta (${formatCurrencyBRL(metaBRL)})`;
-                metaInput.value = metaBRL;
-            }
+        // Inicialização
+        async function init() {
+            atualizarDataAtualizacao();
 
-            function renderTransactionList() {
-                transactionListEl.innerHTML = '';
-                transactions.slice().reverse().forEach(t => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `<td>${new Date(t.date).toLocaleDateString('pt-BR')}</td><td>${t.xno.toFixed(4)}</td><td>${formatCurrencyBRL(t.brl)}</td>`;
-                    transactionListEl.appendChild(row);
-                });
-            }
+            // Carregar dados e meta
+            const dados = carregarDados();
+            metaPatrimonio = dados.meta || metaPatrimonio;
 
-            function updateProjections(totalXNO) {
-                projectionListEl.innerHTML = '';
-                const usdToBrl = xnoPrice.brl / xnoPrice.usd;
-                projectionScenarios.forEach(s => {
-                    const value = totalXNO * s.price * usdToBrl;
-                    projectionListEl.innerHTML += `<tr><td>${s.name}</td><td>${formatCurrencyUSD(s.price)}</td><td>${formatCurrencyBRL(value)}</td></tr>`;
-                });
-            }
+            // Atualizar input meta com valor salvo
+            document.getElementById('meta-value').value = metaPatrimonio.toFixed(0);
 
-            function updatePassiveIncomeSimulator() {
-                const usdToBrl = xnoPrice.brl / xnoPrice.usd;
-                const sellAmount = parseFloat(sellAmountInput.value) || 0;
-                const simPrice = parseFloat(simPriceInput.value) || 0;
-                const monthly = sellAmount * simPrice * usdToBrl;
-                const yearly = monthly * 12;
+            // Buscar preço do Nano
+            const preco = await buscarPrecoNano();
 
-                passiveIncomeResultEl.textContent = `R$ ${monthly.toFixed(2)} / mês = R$ ${yearly.toFixed(2)} / ano`;
-            }
+            atualizarDashboard(dados, preco);
+            atualizarTabela(dados);
 
-            function formatCurrencyBRL(value) {
-                return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-            }
-
-            function formatCurrencyUSD(value) {
-                return `$${value.toFixed(2)}`;
-            }
-
-            transactionForm.addEventListener('submit', (e) => {
+            // Eventos
+            document.getElementById('form-add-compra').addEventListener('submit', (e) => {
                 e.preventDefault();
-                const date = document.getElementById('date').value;
-                const xno = parseFloat(document.getElementById('xno-amount').value);
-                const brl = parseFloat(document.getElementById('brl-value').value);
-                if (!date || isNaN(xno) || isNaN(brl)) return;
-                transactions.push({ date, xno, brl });
-                localStorage.setItem('xno_transactions', JSON.stringify(transactions));
-                updateUI();
-                transactionForm.reset();
-            });
 
-            resetButton.addEventListener('click', () => {
-                if (confirm('Tem certeza que deseja apagar todo o histórico?')) {
-                    transactions = [];
-                    localStorage.removeItem('xno_transactions');
-                    updateUI();
+                const quantidade = parseFloat(document.getElementById('compra-quantidade').value);
+                const precoUnitario = parseFloat(document.getElementById('compra-preco').value);
+
+                if(isNaN(quantidade) || quantidade <= 0 || isNaN(precoUnitario) || precoUnitario <= 0){
+                    alert('Por favor, insira valores válidos para quantidade e preço.');
+                    return;
                 }
+
+                const valorTotal = quantidade * precoUnitario;
+
+                const novaCompra = {
+                    quantidade: quantidade,
+                    precoUnitario: precoUnitario,
+                    valorTotal: valorTotal,
+                    data: new Date().toISOString()
+                };
+
+                dados.transacoes.push(novaCompra);
+                salvarDados(dados);
+                atualizarTabela(dados);
+                atualizarDashboard(dados, precoAtualGlobal);
+
+                e.target.reset();
             });
 
-            sellAmountInput.addEventListener('input', updatePassiveIncomeSimulator);
-            simPriceInput.addEventListener('input', updatePassiveIncomeSimulator);
-
-            metaInput.addEventListener('change', () => {
-                const newMeta = parseFloat(metaInput.value);
-                if (!isNaN(newMeta) && newMeta > 0) {
-                    metaBRL = newMeta;
-                    localStorage.setItem('xno_meta', metaBRL);
-                    updateUI();
+            // Alterar meta
+            document.getElementById('meta-value').addEventListener('change', (e) => {
+                let novoValor = parseFloat(e.target.value);
+                if(isNaN(novoValor) || novoValor <= 0) {
+                    alert('Meta deve ser um valor maior que zero.');
+                    e.target.value = metaPatrimonio;
+                    return;
                 }
+                metaPatrimonio = novoValor;
+                dados.meta = metaPatrimonio;
+                salvarDados(dados);
+                atualizarDashboard(dados, precoAtualGlobal);
             });
 
-            fetchPrices();
-            setInterval(fetchPrices, 60 * 60 * 1000); // Atualiza a cada hora
-        });
+            // Simulador de renda passiva
+            document.getElementById('form-simulador').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const simXNO = parseFloat(document.getElementById('sim-xno').value);
+                const simRendimento = parseFloat(document.getElementById('sim-rendimento').value);
+
+                if(isNaN(simXNO) || simXNO <= 0 || isNaN(simRendimento) || simRendimento < 0){
+                    alert('Insira valores válidos para simulação.');
+                    return;
+                }
+
+                // Renda passiva mensal = quantidade * preço atual * rendimento%
+                const rendaPassiva = simXNO * precoAtualGlobal * (simRendimento / 100);
+
+                const resultado = `Renda passiva mensal estimada: ${formatBRL(rendaPassiva)}`;
+                document.getElementById('resultado-renda').innerText = resultado;
+            });
+
+            // Atualizar preço e dashboard a cada 2 minutos
+            setInterval(async () => {
+                const novoPreco = await buscarPrecoNano();
+                atualizarDashboard(carregarDados(), novoPreco);
+                atualizarDataAtualizacao();
+            }, 120000);
+        }
+
+        init();
     </script>
 </body>
 </html>
