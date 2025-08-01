@@ -45,6 +45,14 @@
             margin-bottom: 10px;
         }
 
+        header img {
+            max-width: 150px;
+            margin-bottom: 15px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
         header h1 {
             margin: 0;
             color: var(--primary-color);
@@ -259,12 +267,61 @@
                 grid-template-columns: 1fr;
             }
         }
-    </style>
+    
+    /* NOVO: Estilos para celulares menores */
+    @media (max-width: 480px) {
+        header p {
+            display: block;
+            font-size: 0.85em;
+            text-align: center;
+        }
+
+        #meta-input {
+            width: 100%;
+        }
+
+        .dashboard-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .metric .label {
+            font-size: 0.85em;
+        }
+
+        .metric .value {
+            font-size: 1.4em;
+        }
+
+        .card h2 {
+            font-size: 1.1em;
+        }
+
+        .form-group input,
+        .form-group select {
+            font-size: 1em;
+        }
+
+        button {
+            font-size: 1em;
+            padding: 10px;
+        }
+
+        .chart-container {
+            height: 250px;
+        }
+
+        header img {
+            max-width: 120px;
+        }
+    }
+
+</style>
 </head>
 <body>
 
     <div class="container">
         <header>
+            <img src="https://i.imgur.com/1eXlhYE.png" alt="Logo Nano (XNO)">
             <h1>Painel de Controle de Investimentos em Nano (XNO)</h1>
             <p>Seu caminho para a meta de <input type="number" id="meta-input" value="150000" min="0" step="100">, atualizado em tempo real.</p>
             <div id="live-price" style="font-size:1.1em; margin-top:10px;">Buscando cotações...</div>
