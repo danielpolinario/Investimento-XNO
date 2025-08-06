@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carteira Nano (XNO) - Análise Completa</title>
+    <title>Carteira Nano (XNO) - Cálculo Automático</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --nano-blue: #4882c6;
             --success: #28a745;
             --danger: #dc3545;
-            --warning: #ffc107;
             --border-radius: 8px;
         }
 
@@ -18,7 +17,6 @@
             font-family: Arial, sans-serif;
             margin: 20px;
             line-height: 1.6;
-            color: #333;
         }
 
         .container {
@@ -94,33 +92,6 @@
             color: white;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-
-        th {
-            background-color: var(--nano-blue);
-            color: white;
-        }
-
-        .buy {
-            color: var(--success);
-            font-weight: bold;
-        }
-
-        .sell {
-            color: var(--danger);
-            font-weight: bold;
-        }
-
         .metrics {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -141,38 +112,14 @@
             margin: 5px 0;
         }
 
-        /* VALOR ATUAL DESTACADO */
         #currentValue {
             color: var(--success);
             font-weight: bold;
-            font-size: 1.5em;
-        }
-
-        .profit {
-            color: var(--success);
-        }
-
-        .loss {
-            color: var(--danger);
         }
 
         .chart-container {
             height: 300px;
             margin-top: 20px;
-        }
-
-        @media (max-width: 600px) {
-            .metrics {
-                grid-template-columns: 1fr;
-            }
-            
-            .button-group {
-                flex-direction: column;
-            }
-            
-            button {
-                width: 100%;
-            }
         }
     </style>
 </head>
@@ -180,7 +127,7 @@
     <div class="container">
         <div class="header">
             <img src="https://s2.coinmarketcap.com/static/img/coins/200x200/1567.png" alt="Nano Logo">
-            <h2>Carteira Nano (XNO) - Análise Completa</h2>
+            <h2>Carteira Nano (XNO) - Cálculo Automático</h2>
         </div>
 
         <div class="panel">
@@ -191,8 +138,8 @@
             </div>
             
             <div class="form-group">
-                <label for="price">Preço Unitário (BRL)</label>
-                <input type="number" id="price" step="0.01" min="0" required>
+                <label for="totalValue">Valor Total da Transação (BRL)</label>
+                <input type="number" id="totalValue" step="0.01" min="0">
             </div>
             
             <div class="form-group">
@@ -203,8 +150,9 @@
             <div class="button-group">
                 <button class="btn-buy" onclick="addTransaction('buy')">Registrar Compra</button>
                 <button class="btn-sell" onclick="addTransaction('sell')">Registrar Venda</button>
-                <button class="btn-reset" onclick="resetTransactions()">Limpar Tudo</button>
+                <button class="btn-reset" onclick="resetPortfolio()">Resetar Carteira</button>
             </div>
+            <p><small>Preço unitário será calculado automaticamente</small></p>
         </div>
 
         <div class="panel">
@@ -224,205 +172,67 @@
                     <div>Preço Médio (BRL)</div>
                     <div class="metric-value" id="avgPrice">R$0.00</div>
                 </div>
-                
-                <div class="metric-card">
-                    <div>Lucro/Prejuízo</div>
-                    <div class="metric-value" id="profitLoss">R$0.00</div>
-                </div>
             </div>
         </div>
 
         <div class="panel">
-            <h3>Evolução do Valor da Carteira</h3>
+            <h3>Evolução da Carteira</h3>
             <div class="chart-container">
                 <canvas id="portfolioChart"></canvas>
             </div>
         </div>
-
-        <div class="panel">
-            <h3>Histórico de Transações</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Data</th>
-                        <th>Tipo</th>
-                        <th>Quantidade</th>
-                        <th>Preço Unitário</th>
-                        <th>Valor Total</th>
-                    </tr>
-                </thead>
-                <tbody id="transactionsTable">
-                    <!-- Transações serão inseridas aqui -->
-                </tbody>
-            </table>
-        </div>
     </div>
 
     <script>
-        // Carregar transações do localStorage
         let transactions = JSON.parse(localStorage.getItem('nanoTransactions')) || [];
-        let currentXNOPrice = 0;
         let portfolioChart = null;
+        let currentXNOPrice = 0;
 
-        // Buscar preço atual da API
+        // Buscar preço atual
         async function fetchCurrentPrice() {
             try {
                 const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=nano&vs_currencies=brl');
                 const data = await response.json();
                 return data.nano.brl || 0;
             } catch (error) {
-                console.error('Erro ao buscar preço:', error);
+                console.error("Erro ao buscar preço:", error);
                 return 0;
             }
         }
 
-        // Atualizar gráfico
-        function updateChart(portfolioHistory) {
-            const ctx = document.getElementById('portfolioChart').getContext('2d');
+        // Calcular preço unitário automaticamente
+        function calculateUnitPrice() {
+            const amount = parseFloat(document.getElementById('amount').value);
+            const totalValue = parseFloat(document.getElementById('totalValue').value);
             
-            // Destruir gráfico anterior se existir
-            if (portfolioChart) {
-                portfolioChart.destroy();
+            if (amount && totalValue && amount > 0 && totalValue > 0) {
+                return totalValue / amount;
             }
-            
-            // Criar novo gráfico
-            portfolioChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: portfolioHistory.map(item => item.date),
-                    datasets: [{
-                        label: 'Valor da Carteira (BRL)',
-                        data: portfolioHistory.map(item => item.value),
-                        borderColor: '#4882c6',
-                        backgroundColor: 'rgba(72, 130, 198, 0.1)',
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.3
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return 'R$' + context.parsed.y.toFixed(2);
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            ticks: {
-                                callback: function(value) {
-                                    return 'R$' + value;
-                                }
-                            }
-                        }
-                    }
-                }
-            });
+            return 0;
         }
 
-        // Atualizar toda a exibição
-        async function updateDisplay() {
-            const tableBody = document.getElementById('transactionsTable');
-            tableBody.innerHTML = '';
-            
-            let balance = 0;
-            let totalSpent = 0;
-            let totalReceived = 0;
-            let totalBought = 0;
-            const portfolioHistory = [];
-            
-            // Ordenar por data (mais antiga primeiro para o gráfico)
-            const sortedTransactions = [...transactions].sort((a, b) => new Date(a.date) - new Date(b.date));
-            
-            // Processar transações
-            sortedTransactions.forEach(tx => {
-                if (tx.type === 'buy') {
-                    balance += tx.amount;
-                    totalSpent += tx.amount * tx.price;
-                    totalBought += tx.amount;
-                } else {
-                    balance -= tx.amount;
-                    totalReceived += tx.amount * tx.price;
-                }
-                
-                // Registrar histórico para o gráfico
-                portfolioHistory.push({
-                    date: tx.date,
-                    value: balance * (tx.type === 'buy' ? tx.price : (tx.price || currentXNOPrice))
-                });
-            });
-            
-            // Ordenar por data (mais recente primeiro para a tabela)
-            const sortedForTable = [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
-            
-            // Preencher tabela
-            sortedForTable.forEach(tx => {
-                const row = document.createElement('tr');
-                
-                if (tx.type === 'buy') {                    
-                    row.innerHTML = `
-                        <td>${tx.date}</td>
-                        <td class="buy">COMPRA</td>
-                        <td>${tx.amount.toFixed(6)} XNO</td>
-                        <td>R$${tx.price.toFixed(2)}</td>
-                        <td>R$${(tx.amount * tx.price).toFixed(2)}</td>
-                    `;
-                } else {
-                    row.innerHTML = `
-                        <td>${tx.date}</td>
-                        <td class="sell">VENDA</td>
-                        <td>${tx.amount.toFixed(6)} XNO</td>
-                        <td>R$${tx.price.toFixed(2)}</td>
-                        <td>R$${(tx.amount * tx.price).toFixed(2)}</td>
-                    `;
-                }
-                
-                tableBody.appendChild(row);
-            });
-            
-            // Atualizar métricas
-            currentXNOPrice = await fetchCurrentPrice();
-            const currentValue = balance * currentXNOPrice;
-            const avgPrice = totalBought > 0 ? (totalSpent / totalBought) : 0;
-            const profitLoss = (currentValue + totalReceived) - totalSpent;
-            
-            document.getElementById('currentBalance').textContent = balance.toFixed(6);
-            document.getElementById('currentValue').textContent = `R$${currentValue.toFixed(2)}`;
-            document.getElementById('avgPrice').textContent = `R$${avgPrice.toFixed(2)}`;
-            
-            const profitElement = document.getElementById('profitLoss');
-            profitElement.textContent = `R$${profitLoss.toFixed(2)}`;
-            profitElement.className = profitLoss >= 0 ? 'profit' : 'loss';
-            
-            // Atualizar gráfico
-            updateChart(portfolioHistory);
-        }
-
-        // Adicionar nova transação
+        // Adicionar transação
         async function addTransaction(type) {
             const amount = parseFloat(document.getElementById('amount').value);
-            const price = parseFloat(document.getElementById('price').value);
+            const totalValue = parseFloat(document.getElementById('totalValue').value);
             const date = document.getElementById('date').value;
             
-            if (!amount || !price || !date) {
-                alert('Preencha todos os campos!');
+            if (!amount || !date) {
+                alert('Preencha quantidade e data!');
                 return;
             }
             
-            if (amount <= 0 || price <= 0) {
-                alert('Valores devem ser maiores que zero!');
+            const unitPrice = calculateUnitPrice();
+            
+            if (type === 'buy' && unitPrice <= 0) {
+                alert('Informe o valor total da compra!');
                 return;
             }
             
             transactions.push({
                 type,
                 amount,
-                price,
+                price: unitPrice,
                 date
             });
             
@@ -431,12 +241,12 @@
             
             // Limpar campos
             document.getElementById('amount').value = '';
-            document.getElementById('price').value = '';
+            document.getElementById('totalValue').value = '';
         }
 
-        // Limpar histórico
-        function resetTransactions() {
-            if (confirm('Tem certeza que deseja apagar TODAS as transações?')) {
+        // Resetar carteira
+        function resetPortfolio() {
+            if (confirm('Tem certeza que deseja resetar TODAS as transações? Todos os dados serão perdidos.')) {
                 transactions = [];
                 saveTransactions();
                 updateDisplay();
@@ -448,11 +258,79 @@
             localStorage.setItem('nanoTransactions', JSON.stringify(transactions));
         }
 
+        // Atualizar exibição
+        async function updateDisplay() {
+            currentXNOPrice = await fetchCurrentPrice();
+            let balance = 0;
+            let totalInvested = 0;
+            let totalBought = 0;
+            const history = [];
+            
+            // Processar transações
+            transactions.forEach(tx => {
+                if (tx.type === 'buy') {
+                    balance += tx.amount;
+                    totalInvested += tx.amount * tx.price;
+                    totalBought += tx.amount;
+                } else {
+                    balance -= tx.amount;
+                }
+                
+                history.push({
+                    date: tx.date,
+                    value: balance * (tx.price || currentXNOPrice)
+                });
+            });
+            
+            // Atualizar métricas
+            const currentValue = balance * currentXNOPrice;
+            const avgPrice = totalBought > 0 ? (totalInvested / totalBought) : 0;
+            
+            document.getElementById('currentBalance').textContent = balance.toFixed(6);
+            document.getElementById('currentValue').textContent = `R$${currentValue.toFixed(2)}`;
+            document.getElementById('avgPrice').textContent = `R$${avgPrice.toFixed(2)}`;
+            
+            // Atualizar gráfico
+            updateChart(history);
+        }
+
+        // Atualizar gráfico
+        function updateChart(data) {
+            const ctx = document.getElementById('portfolioChart').getContext('2d');
+            
+            if (portfolioChart) {
+                portfolioChart.destroy();
+            }
+            
+            portfolioChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.map(item => item.date),
+                    datasets: [{
+                        label: 'Valor da Carteira (BRL)',
+                        data: data.map(item => item.value),
+                        borderColor: '#4882c6',
+                        backgroundColor: 'rgba(72, 130, 198, 0.1)',
+                        borderWidth: 2,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: value => 'R$' + value
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
         // Inicializar
         updateDisplay();
-
-        // Atualizar a cada 5 minutos
-        setInterval(updateDisplay, 300000);
     </script>
 </body>
 </html>
