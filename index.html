@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>💰 Meu Portfólio XNO</title>
+    <title>💰 Portfólio XNO Nano</title>
     <style>
         :root {
             --primary: #4A90E2;
@@ -28,8 +28,22 @@
         }
         
         .portfolio-header {
-            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
             margin-bottom: 20px;
+        }
+        
+        .logo {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        .header-text {
+            text-align: center;
         }
         
         .portfolio-title {
@@ -123,14 +137,68 @@
             margin: 12px 0;
             font-size: 14px;
         }
+        
+        /* Modal para entrada de dados */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 400px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .modal-actions button {
+            flex: 1;
+        }
     </style>
 </head>
 <body>
     <div class="portfolio-header">
-        <div class="portfolio-title">Meu Portfólio</div>
-        <div class="portfolio-value" id="portfolioValue">R$0,00</div>
-        <div class="price-info" id="priceInfo">🔄 Buscando preço do XNO...</div>
+        <img src="https://s2.coinmarketcap.com/static/img/coins/200x200/1567.png" alt="XNO Logo" class="logo">
+        <div class="header-text">
+            <div class="portfolio-title">Portfólio XNO Nano</div>
+            <div class="portfolio-value" id="portfolioValue">R$0,00</div>
+        </div>
     </div>
+    
+    <div class="price-info" id="priceInfo">🔄 Buscando preço do XNO...</div>
     
     <div class="metrics-grid">
         <div class="metric-card">
@@ -167,10 +235,53 @@
         </div>
     </div>
 
+    <!-- Modal para adicionar transações -->
+    <div class="modal" id="transactionModal">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 id="modalTitle">Nova Transação</h3>
+                <button id="closeModal" style="background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
+            </div>
+            
+            <div class="form-group">
+                <label for="transactionType">Tipo</label>
+                <select id="transactionType">
+                    <option value="buy">Compra</option>
+                    <option value="sell">Venda</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="transactionAmount">Quantidade XNO</label>
+                <input type="number" id="transactionAmount" placeholder="Ex: 10.5" step="0.01" min="0.01">
+            </div>
+            
+            <div class="form-group">
+                <label for="transactionTotal">Valor Total (R$)</label>
+                <input type="number" id="transactionTotal" placeholder="Ex: 100.00" step="0.01" min="0.01">
+            </div>
+            
+            <div class="form-group">
+                <label for="transactionDate">Data</label>
+                <input type="date" id="transactionDate">
+            </div>
+            
+            <div class="modal-actions">
+                <button class="clear-btn" id="cancelTransaction">Cancelar</button>
+                <button class="buy-btn" id="confirmTransaction">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Dados
         let transactions = [];
         let currentXnoPrice = 0;
+        let currentAction = 'buy';
+        let editingTransactionId = null;
+        
+        // Chave para armazenamento local
+        const STORAGE_KEY = 'xno_portfolio_data';
         
         // Elementos
         const elements = {
@@ -183,8 +294,35 @@
             transactionsList: document.getElementById('transactionsList'),
             buyBtn: document.getElementById('buyBtn'),
             sellBtn: document.getElementById('sellBtn'),
-            clearBtn: document.getElementById('clearBtn')
+            clearBtn: document.getElementById('clearBtn'),
+            transactionModal: document.getElementById('transactionModal'),
+            modalTitle: document.getElementById('modalTitle'),
+            transactionType: document.getElementById('transactionType'),
+            transactionAmount: document.getElementById('transactionAmount'),
+            transactionTotal: document.getElementById('transactionTotal'),
+            transactionDate: document.getElementById('transactionDate'),
+            closeModal: document.getElementById('closeModal'),
+            cancelTransaction: document.getElementById('cancelTransaction'),
+            confirmTransaction: document.getElementById('confirmTransaction')
         };
+        
+        // Carrega dados salvos
+        function loadSavedData() {
+            const savedData = localStorage.getItem(STORAGE_KEY);
+            if (savedData) {
+                try {
+                    transactions = JSON.parse(savedData);
+                    updatePortfolio();
+                } catch (e) {
+                    console.error("Erro ao carregar dados salvos:", e);
+                }
+            }
+        }
+        
+        // Salva dados no armazenamento local
+        function saveData() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(transactions));
+        }
         
         // Busca preço do XNO
         async function fetchPrice() {
@@ -234,6 +372,9 @@
             
             // Atualiza lista de transações
             renderTransactions();
+            
+            // Salva os dados
+            saveData();
         }
         
         // Renderiza transações
@@ -252,13 +393,15 @@
                 const type = t.type === 'buy' ? 'Compra' : 'Venda';
                 const color = t.type === 'buy' ? 'var(--positive)' : 'var(--negative)';
                 const sign = t.type === 'buy' ? '+' : '-';
+                const date = new Date(t.date);
+                const formattedDate = date.toLocaleDateString('pt-BR');
                 
                 html += `
                     <div class="transaction">
                         <div>
                             <div style="font-weight: 600;">${type}</div>
                             <div style="font-size: 12px; color: var(--text-secondary);">
-                                ${new Date(t.date).toLocaleDateString()}
+                                ${formattedDate}
                             </div>
                         </div>
                         <div style="text-align: right;">
@@ -276,21 +419,82 @@
             elements.transactionsList.innerHTML = html;
         }
         
-        // Adiciona nova transação
-        function addTransaction(type) {
-            const amount = parseFloat(prompt(`Quantidade de XNO para ${type === 'buy' ? 'comprar' : 'vender'}:`));
-            if (!amount || amount <= 0) return;
+        // Abre o modal para nova transação
+        function openTransactionModal(action, transactionId = null) {
+            currentAction = action;
+            editingTransactionId = transactionId;
             
-            const total = parseFloat(prompt(`Valor total em R$:`));
-            if (!total || total <= 0) return;
+            // Configura o modal baseado na ação
+            if (action === 'buy') {
+                elements.modalTitle.textContent = 'Nova Compra';
+                elements.transactionType.value = 'buy';
+                elements.confirmTransaction.className = 'buy-btn';
+            } else if (action === 'sell') {
+                elements.modalTitle.textContent = 'Nova Venda';
+                elements.transactionType.value = 'sell';
+                elements.confirmTransaction.className = 'sell-btn';
+            } else if (action === 'edit') {
+                elements.modalTitle.textContent = 'Editar Transação';
+                const transaction = transactions.find(t => t.id === transactionId);
+                if (transaction) {
+                    elements.transactionType.value = transaction.type;
+                    elements.transactionAmount.value = transaction.amount;
+                    elements.transactionTotal.value = transaction.total;
+                    const date = new Date(transaction.date);
+                    elements.transactionDate.value = date.toISOString().split('T')[0];
+                    elements.confirmTransaction.className = transaction.type === 'buy' ? 'buy-btn' : 'sell-btn';
+                }
+            }
             
-            transactions.push({
+            // Limpa os campos se for uma nova transação
+            if (!transactionId) {
+                elements.transactionAmount.value = '';
+                elements.transactionTotal.value = '';
+                elements.transactionDate.value = new Date().toISOString().split('T')[0];
+            }
+            
+            elements.transactionModal.style.display = 'flex';
+        }
+        
+        // Fecha o modal
+        function closeTransactionModal() {
+            elements.transactionModal.style.display = 'none';
+            editingTransactionId = null;
+        }
+        
+        // Adiciona/edita transação
+        function confirmTransaction() {
+            const type = elements.transactionType.value;
+            const amount = parseFloat(elements.transactionAmount.value);
+            const total = parseFloat(elements.transactionTotal.value);
+            const date = elements.transactionDate.value;
+            
+            // Validação
+            if (!amount || amount <= 0 || !total || total <= 0 || !date) {
+                alert('Por favor, preencha todos os campos corretamente');
+                return;
+            }
+            
+            const transactionData = {
+                id: editingTransactionId || Date.now(),
                 type,
                 amount,
                 total,
-                date: new Date()
-            });
+                date: new Date(date).toISOString()
+            };
             
+            if (editingTransactionId) {
+                // Edita transação existente
+                const index = transactions.findIndex(t => t.id === editingTransactionId);
+                if (index !== -1) {
+                    transactions[index] = transactionData;
+                }
+            } else {
+                // Adiciona nova transação
+                transactions.push(transactionData);
+            }
+            
+            closeTransactionModal();
             updatePortfolio();
         }
         
@@ -300,17 +504,33 @@
             
             if (confirm('Tem certeza que deseja apagar TODAS as transações?\nEsta ação não pode ser desfeita.')) {
                 transactions = [];
+                localStorage.removeItem(STORAGE_KEY);
                 updatePortfolio();
             }
         }
         
         // Eventos
-        elements.buyBtn.addEventListener('click', () => addTransaction('buy'));
-        elements.sellBtn.addEventListener('click', () => addTransaction('sell'));
+        elements.buyBtn.addEventListener('click', () => openTransactionModal('buy'));
+        elements.sellBtn.addEventListener('click', () => openTransactionModal('sell'));
         elements.clearBtn.addEventListener('click', clearAllTransactions);
+        elements.closeModal.addEventListener('click', closeTransactionModal);
+        elements.cancelTransaction.addEventListener('click', closeTransactionModal);
+        elements.confirmTransaction.addEventListener('click', confirmTransaction);
+        
+        // Fecha modal ao clicar fora
+        elements.transactionModal.addEventListener('click', (e) => {
+            if (e.target === elements.transactionModal) {
+                closeTransactionModal();
+            }
+        });
         
         // Inicia
-        fetchPrice();
+        document.addEventListener('DOMContentLoaded', () => {
+            // Configura data padrão para hoje
+            elements.transactionDate.value = new Date().toISOString().split('T')[0];
+            loadSavedData();
+            fetchPrice();
+        });
     </script>
 </body>
 </html>
